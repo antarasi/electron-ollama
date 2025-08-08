@@ -1,4 +1,5 @@
-import { ElectronOllama, ElectronOllamaConfig, PlatformConfig, ElectronOllamaServer, GitHubRelease } from '../src/index';
+import { ElectronOllama, ElectronOllamaServer } from '../src/index';
+import { ElectronOllamaConfig, PlatformConfig, GitHubRelease } from '../src/types';
 import { ChildProcess } from 'child_process';
 
 import * as fs from 'fs';
@@ -473,11 +474,11 @@ describe('OllamaServer', () => {
     const mockProcess = {
       kill: jest.fn(),
     } as unknown as ChildProcess;
-    (server as { process: ChildProcess | null }).process = mockProcess;
+    (server as unknown as { process: ChildProcess | null }).process = mockProcess;
 
     server.stop();
 
     expect(mockProcess.kill).toHaveBeenCalled();
-    expect((server as { process: ChildProcess | null }).process).toBeNull();
+    expect((server as unknown as { process: ChildProcess | null }).process).toBeNull();
   });
 });

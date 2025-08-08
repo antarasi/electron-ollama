@@ -1,97 +1,13 @@
-import { spawn, ChildProcess } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
 import { githubFetch } from './github-fetch';
 import { unzip } from './unzip';
 import { untgz } from './untgz';
-
-export type SpecificVersion = `v${number}.${number}.${number}`;
-export type LatestVersion = 'latest';
-export type Version = SpecificVersion | LatestVersion;
-
-export interface ElectronOllamaConfig {
-  basePath: string;
-  directory?: string;
-}
-
-export interface PlatformConfig {
-  os: 'windows' | 'darwin' | 'linux';
-  arch: 'arm64' | 'amd64';
-}
-
-export interface OllamaAssetMetadata {
-  digest: string;
-  size: number;
-  fileName: string;
-  contentType: string;
-  version: SpecificVersion;
-  downloads: number;
-  downloadUrl: string;
-  releaseUrl: string;
-  body: string;
-}
-
-export interface OllamaServerConfig {
-  binPath: string;
-}
-
-export interface GitHubAsset {
-  url: string;
-  id: number;
-  node_id: string;
-  name: string;
-  label: string | null;
-  content_type: string;
-  state: string;
-  size: number;
-  digest: string;
-  download_count: number;
-  created_at: string;
-  updated_at: string;
-  browser_download_url: string;
-}
-
-export interface GitHubRelease {
-  url: string;
-  assets_url: string;
-  upload_url: string;
-  html_url: string;
-  id: number;
-  node_id: string;
-  tag_name: string;
-  target_commitish: string;
-  name: string;
-  draft: boolean;
-  immutable: boolean;
-  prerelease: boolean;
-  created_at: string;
-  published_at: string;
-  assets: GitHubAsset[];
-  tarball_url: string;
-  zipball_url: string;
-  body: string;
-}
-
-export class ElectronOllamaServer {
-  process: ChildProcess | null = null;
-
-  constructor(config: OllamaServerConfig) {
-    // Config parameter is required by API but not used in current implementation
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    void config;
-  }
-
-  /**
-   * Stop the Ollama server
-   */
-  public stop(): void {
-    if (this.process) {
-      this.process.kill();
-      this.process = null;
-    }
-  }
-}
+import { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, GitHubRelease, SpecificVersion, Version } from './types';
+import { ElectronOllamaServer } from './server';
+export type { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, SpecificVersion, Version };
+export { ElectronOllamaServer };
 
 export class ElectronOllama {
   private config: ElectronOllamaConfig;
@@ -146,6 +62,9 @@ export class ElectronOllama {
     };
   }
 
+  /**
+   * Get the name of the asset for the given platform configuration (e.g. "ollama-windows-amd64.zip" or "ollama-darwin.tgz")
+   */
   public getAssetName(platformConfig: PlatformConfig): string {
     const { os, arch: architecture } = platformConfig;
 
@@ -160,7 +79,7 @@ export class ElectronOllama {
   }
 
   /**
-   * Get metadata for a specific version and platform
+   * Get metadata for a specific version ('latest' by default) and platform
    */
   public async getMetadata(
     version: Version = 'latest',
@@ -192,7 +111,7 @@ export class ElectronOllama {
   }
 
   /**
-   * Download Ollama for the specified version and platform
+   * Download Ollama for the specified version ('latest' by default) and platform
    */
   public async download(
     version: Version = 'latest',
@@ -227,9 +146,6 @@ export class ElectronOllama {
 
   /**
    * Check if a version is downloaded for the given platform configuration
-   * @param version - The version to check, for example "v0.11.0"
-   * @param platformConfig - The platform configuration to use, defaults to the current platform configuration
-   * @returns True if the version is downloaded, false otherwise
    */
   public async isDownloaded(version: SpecificVersion, platformConfig: PlatformConfig = this.currentPlatformConfig()): Promise<boolean> {
     const binPath = this.getBinPath(version, platformConfig);
@@ -238,8 +154,6 @@ export class ElectronOllama {
 
   /**
    * List all downloaded versions for the given platform configuration
-   * @param platformConfig - The platform configuration to use, defaults to the current platform configuration
-   * @returns A list of downloaded versions
    */
   public async downloadedVersions(platformConfig: PlatformConfig = this.currentPlatformConfig()): Promise<string[]> {
     const versions = await fs.readdir(path.join(this.config.basePath, this.config.directory!));
@@ -248,11 +162,8 @@ export class ElectronOllama {
 
   /**
    * Get the path to the directory for the given version and platform configuration
-   * @param version - The version to get the binary path for, for example "v0.11.0"
-   * @param platformConfig - The platform configuration to use, defaults to the current platform configuration
-   * @returns The path to the directory
    */
-  private getBinPath(version: SpecificVersion, platformConfig: PlatformConfig = this.currentPlatformConfig()): string {
+  public getBinPath(version: SpecificVersion, platformConfig: PlatformConfig = this.currentPlatformConfig()): string {
     return path.join(
       this.config.basePath,
       this.config.directory!,
@@ -262,7 +173,10 @@ export class ElectronOllama {
     );
   }
 
-  private getExecutableName(platformConfig: PlatformConfig): string {
+  /**
+   * Get the name of the executable for the given platform configuration
+   */
+  public getExecutableName(platformConfig: PlatformConfig): string {
     switch (platformConfig.os) {
       case 'windows':
         return 'ollama.exe';
@@ -286,23 +200,7 @@ export class ElectronOllama {
     }
 
     const server = new ElectronOllamaServer({ binPath });
-
-    // Start the server process
-    const process = spawn(binPath, [this.getExecutableName(platformConfig), 'serve']);
-
-    server.process = process;
-
-    process.stdout?.on('data', (data) => {
-      console.log(`stdout: ${data}`);
-    });
-
-    process.stderr?.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-    });
-
-    process.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
-    });
+    server.start(this.getExecutableName(platformConfig));
 
     return server;
   }
