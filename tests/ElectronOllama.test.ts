@@ -460,14 +460,14 @@ describe('ElectronOllama', () => {
 
 describe('OllamaServer', () => {
   it('should create instance with config', () => {
-    const config = { binPath: '/path/to/ollama' };
+    const config = { binPath: '/path/to/ollama', log: jest.fn() };
     const server = new ElectronOllamaServer(config);
 
     expect(server).toBeInstanceOf(ElectronOllamaServer);
   });
 
   it('should stop the server', () => {
-    const config = { binPath: '/path/to/ollama' };
+    const config = { binPath: '/path/to/ollama', log: jest.fn() };
     const server = new ElectronOllamaServer(config);
 
     // Mock the process
