@@ -36,12 +36,14 @@ if (!(await eo.isRunning())) {
   console.log('Ollama server is already running')
 }
 
-// ... keep the server running as long as your app is running
+// gracefully shut down the server on parent process exit
+process.on('SIGTERM', () => {
+  if (server) {
+    server.stop()
+  }
+  process.exit(0);
+});
 
-// stop only if server was started by electron-ollama
-if (server) {
-  server.stop()
-}
 ```
 
 ## Configuration

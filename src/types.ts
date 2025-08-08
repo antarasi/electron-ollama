@@ -5,6 +5,7 @@ export type Version = SpecificVersion | LatestVersion;
 export interface ElectronOllamaConfig {
   basePath: string;
   directory?: string;
+  serveLog?: (message: string) => void;
 }
 
 export interface PlatformConfig {
@@ -26,6 +27,7 @@ export interface OllamaAssetMetadata {
 
 export interface OllamaServerConfig {
   binPath: string;
+  log: (message: string) => void;
 }
 
 export interface GitHubAsset {

@@ -199,7 +199,10 @@ export class ElectronOllama {
       await this.download(version, platformConfig);
     }
 
-    const server = new ElectronOllamaServer({ binPath });
+    const server = new ElectronOllamaServer({
+      binPath,
+      log: this.config.serveLog || (() => {}),
+    });
     server.start(this.getExecutableName(platformConfig));
 
     return server;

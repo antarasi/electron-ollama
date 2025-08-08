@@ -5,9 +5,11 @@ import * as path from 'path';
 export class ElectronOllamaServer {
   private process: ChildProcess | null = null;
   private binPath: string;
+  private log: (message: string) => void;
 
   constructor(config: OllamaServerConfig) {
     this.binPath = config.binPath;
+    this.log = config.log;
   }
 
   public start(executableName: string): void {
@@ -15,21 +17,18 @@ export class ElectronOllamaServer {
       cwd: this.binPath,
     });
 
-    this.process.stdout?.on('data', (data) => {
-      console.log(`stdout: ${data}`);
-    });
+    this.log(`Ollama server pid: ${this.process.pid}`);
 
-    this.process.stderr?.on('data', (data) => {
-      console.error(`stderr: ${data}`);
-    });
+    this.process.stdout?.on('data', this.log);
+    this.process.stderr?.on('data', this.log);
 
     this.process.on('error', (error) => {
-      console.error(`Ollama server process error: ${error}`);
+      this.log(`Ollama server process error: ${error}`);
       this.process = null;
     });
 
     this.process.on('close', (code) => {
-      console.log(`child process exited with code ${code}`);
+      this.log(`Ollama server exited with code ${code}`);
     });
   }
 
