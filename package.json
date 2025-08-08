@@ -1,6 +1,6 @@
 {
   "name": "electron-ollama",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "private": false,
   "description": "Bundle Ollama with your Electron.js app for seamless user experience",
   "main": "dist/index.js",
