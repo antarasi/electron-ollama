@@ -2,6 +2,8 @@
 
 A TypeScript library for integrating Ollama with Electron.js applications. This library provides a seamless way to bundle and manage Ollama within your Electron app for a better user experience.
 
+[![npm version](https://img.shields.io/npm/v/electron-ollama)](https://npmjs.com/package/electron-ollama)
+
 ## Features
 
 - 🚀 **TypeScript Support**: Full TypeScript support with type definitions
@@ -38,7 +40,7 @@ if (!isRunning) {
   // Download and start Ollama
   await ollama.download();
   const server = await ollama.serve();
-  
+
   // Use the server...
   server.stop();
 }
@@ -156,10 +158,10 @@ async function main() {
       // Download and start
       await ollama.download();
       const server = await ollama.serve();
-      
+
       // Wait for startup
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Verify it's running
       const nowRunning = await ollama.isRunning();
       console.log('Now running:', nowRunning);
@@ -192,7 +194,7 @@ async function specificVersion() {
 
   // Serve specific version
   const server = await ollama.serve('v0.8.0');
-  
+
   // Use the server...
   server.stop();
 }
