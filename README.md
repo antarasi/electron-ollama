@@ -4,6 +4,12 @@ A TypeScript library for integrating Ollama with Electron.js applications. This 
 
 [![npm version](https://img.shields.io/npm/v/electron-ollama)](https://npmjs.com/package/electron-ollama)
 
+
+## Why
+
+Because every extra installation step creates friction, bundling Ollama ensures a smooth, seamless experience. With **electron-ollama**, users skip the hassle of finding installers or running commands — no separate Ollama setup required.
+It detects existing Ollama instance or installs automatically if missing, so users simply open your app and it works.
+
 ## Features
 
 - 🛡️ **No conflict**: Works well with standalone Ollama server (skips installation if Ollama already runs)
@@ -21,60 +27,151 @@ npm install electron-ollama
 
 ## Quick Start - Serve latest version if standalone Ollama is not running
 
-```typescript
-import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
+<!-- automd:file src="examples/serve-latest.ts" code -->
 
-const eo = new ElectronOllama({
-  basePath: app.getPath('userData') // binaries downloaded and extracted to <userData>/electron-ollama/<ollama_version>/<os>/<arch>
-})
-let server: ElectronOllamaServer | null = null
+```ts [serve-latest.ts]
+import { ElectronOllama, ElectronOllamaServer } from '../dist' // replace with: import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
+import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
 
-if (!(await eo.isRunning())) {
-  const metadata = await eo.getMetadata('latest')
-  server = await eo.serve(metadata.version)
-} else {
-  console.log('Ollama server is already running')
+async function main() {
+  const eo = new ElectronOllama({
+    basePath: app.getPath('userData'),
+    serveLog: (message) => console.log('Ollama: ', message),
+  })
+  let server: ElectronOllamaServer | null = null
+
+  if (!(await eo.isRunning())) {
+    const metadata = await eo.getMetadata('latest')
+    server = await eo.serve(metadata.version)
+  } else {
+    console.log('Ollama server is already running')
+  }
 }
 
-// gracefully shut down the server on parent process exit
-process.on('SIGTERM', () => {
-  if (server) {
-    server.stop()
-  }
-  process.exit(0);
-});
+main()
+```
 
+<!-- /automd -->
+
+### Try it
+```bash
+npm run build
+npx tsx examples/serve-latest.ts
 ```
 
 ## Configuration
 
-TBD
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `basePath` | `string` | Yes | - | The base directory where Ollama binaries will be downloaded and stored. Typically `app.getPath('userData')` in Electron apps. |
+| `directory` | `string` | No | `'electron-ollama'` | Subdirectory name within `basePath` where Ollama versions will be organized. Final path structure: `{basePath}/{directory}/{version}/{os}/{arch}/` |
+| `serveLog` | `(message: string) => void` | No | `undefined` | Optional callback function to handle log messages from the Ollama server. Useful for debugging or displaying server status in your application. |
 
 ## Examples
 
-### Run specific version of Ollama
+### Serve specific version of Ollama
 
-```typescript
-// TBD
+<!-- automd:file src="examples/serve-version.ts" code -->
+
+```ts [serve-version.ts]
+import { ElectronOllama, ElectronOllamaServer } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
+import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
+
+async function main() {
+  const eo = new ElectronOllama({
+    basePath: app.getPath('userData'),
+    serveLog: (message) => console.log('Ollama: ', message),
+  })
+  let server: ElectronOllamaServer | null = null
+
+  if (!(await eo.isRunning())) {
+    server = await eo.serve('v0.11.0') // Welcome OpenAI's gpt-oss models
+
+    await new Promise(resolve => setTimeout(resolve, 2000)) // wait for server to start
+
+    const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
+
+    console.log('Currently running Ollama', liveVersion)
+
+    server.stop()
+  } else {
+    console.log('Ollama server is already running')
+  }
+}
+
+main()
+```
+
+<!-- /automd -->
+
+### Try it
+```bash
+npm run build
+npx tsx examples/serve-version.ts
 ```
 
 ### Download for multiple platforms
 
-```typescript
-// TBD
+<!-- automd:file src="examples/download-windows-mac-linux.ts" code -->
+
+```ts [download-windows-mac-linux.ts]
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
+import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
+
+async function main() {
+  const eo = new ElectronOllama({
+    basePath: app.getPath('userData'),
+  })
+
+  const metadata = await eo.getMetadata('latest')
+
+  await eo.download(metadata.version, { os: 'windows', arch: 'arm64' })
+  await eo.download(metadata.version, { os: 'darwin', arch: 'arm64' })
+  await eo.download(metadata.version, { os: 'linux', arch: 'arm64' })
+
+  console.log('Downloaded', metadata.version, 'for windows, mac and linux')
+}
+
+main()
+```
+
+<!-- /automd -->
+
+### Try it
+```bash
+npm run build
+npx tsx examples/download-windows-mac-linux.ts
 ```
 
 ## List downloaded versions
 
-```typescript
-const eo = new ElectronOllama({
-  basePath: '/Users/amatylewicz/dev/desktop-agent/ollama',
-})
+<!-- automd:file src="examples/list-downloaded.ts" code -->
 
-const currentVersion = await eo.downloadedVersions()
-console.log('current platform versions', currentVersion) // [ 'v0.11.0', 'v0.11.3', 'v0.11.4' ]
-const windowsVersions = await eo.downloadedVersions({ os: 'windows', arch: 'arm64' })
-console.log('windows versions', windowsVersions) // [ 'v0.11.0', 'v0.11.1' ]
+```ts [list-downloaded.ts]
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
+import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
+
+async function main() {
+  const eo = new ElectronOllama({
+    basePath: app.getPath('userData'),
+  })
+
+  const currentVersion = await eo.downloadedVersions()
+  console.log('current platform versions', currentVersion) // [ 'v0.11.0', 'v0.11.2', 'v0.11.4' ]
+  const windowsVersions = await eo.downloadedVersions({ os: 'windows', arch: 'arm64' })
+  console.log('windows versions', windowsVersions) // [ 'v0.11.4' ]
+}
+
+main()
+```
+
+<!-- /automd -->
+
+### Try it
+```bash
+npm run build
+npx tsx examples/list-downloaded.ts
 ```
 
 ## API Reference
