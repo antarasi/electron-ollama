@@ -134,7 +134,6 @@ describe('ElectronOllama', () => {
       expect(config).toEqual({
         os: 'darwin',
         architecture: 'arm64',
-        executable: 'ollama',
       });
     });
 
@@ -147,7 +146,6 @@ describe('ElectronOllama', () => {
       expect(config).toEqual({
         os: 'windows',
         architecture: 'amd64',
-        executable: 'ollama.exe',
       });
     });
 
@@ -160,7 +158,6 @@ describe('ElectronOllama', () => {
       expect(config).toEqual({
         os: 'linux',
         architecture: 'amd64',
-        executable: 'ollama',
       });
     });
 
@@ -183,7 +180,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'windows',
         architecture: 'amd64',
-        executable: 'ollama.exe',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -194,7 +190,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'darwin',
         architecture: 'arm64',
-        executable: 'ollama',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -205,7 +200,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'linux',
         architecture: 'amd64',
-        executable: 'ollama',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -252,7 +246,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'linux',
         architecture: 'amd64',
-        executable: 'ollama',
       };
 
       const metadata = await ollama.getMetadata('latest', platformConfig);
@@ -291,7 +284,8 @@ describe('ElectronOllama', () => {
       await ollama.download();
 
       expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
       expect(mockUntgz).toHaveBeenCalled(); // Darwin uses .tgz by default
 
       consoleSpy.mockRestore();
@@ -302,13 +296,13 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'windows',
         architecture: 'amd64',
-        executable: 'ollama.exe',
       };
 
       await ollama.download('v0.8.0', platformConfig);
 
       expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/windows/amd64');
+      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-windows-amd64.zip in /tmp/electron-ollama/v0.11.0/windows/amd64');
       expect(mockUnzip).toHaveBeenCalled(); // Windows uses .zip
 
       consoleSpy.mockRestore();
@@ -330,7 +324,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'linux',
         architecture: 'amd64',
-        executable: 'ollama',
       };
 
       await ollama.download('latest', platformConfig);
@@ -355,7 +348,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'windows',
         architecture: 'amd64',
-        executable: 'ollama.exe',
       };
 
       await ollama.download('latest', platformConfig);
@@ -380,7 +372,6 @@ describe('ElectronOllama', () => {
       const platformConfig: PlatformConfig = {
         os: 'windows',
         architecture: 'amd64',
-        executable: 'ollama.exe',
       };
 
       await expect(ollama.download('latest', platformConfig))
@@ -407,7 +398,8 @@ describe('ElectronOllama', () => {
       await ollama.serve('v0.11.0');
 
       expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
 
       consoleSpy.mockRestore();
     });
@@ -420,7 +412,7 @@ describe('ElectronOllama', () => {
       const result = await ollama.isDownloaded('v0.11.0');
 
       expect(result).toBe(true);
-      expect(mockFsAccess).toHaveBeenCalledWith(expect.stringContaining('v0.11.0/ollama'));
+      expect(mockFsAccess).toHaveBeenCalledWith(expect.stringContaining('v0.11.0/darwin/arm64'));
     });
 
     it('should return false when version is not downloaded', async () => {
