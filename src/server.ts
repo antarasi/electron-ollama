@@ -19,8 +19,8 @@ export class ElectronOllamaServer {
 
     this.log(`Ollama server pid: ${this.process.pid}`);
 
-    this.process.stdout?.on('data', this.log);
-    this.process.stderr?.on('data', this.log);
+    this.process.stdout?.on('data', data => this.log(`${data}`));
+    this.process.stderr?.on('data', data => this.log(`${data}`));
 
     this.process.on('error', (error) => {
       this.log(`Ollama server process error: ${error}`);
