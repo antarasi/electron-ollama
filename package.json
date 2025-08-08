@@ -1,6 +1,7 @@
 {
   "name": "electron-ollama",
   "version": "0.1.0",
+  "private": false,
   "description": "Bundle Ollama with your Electron.js app for seamless user experience",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -64,5 +65,9 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   }
 }
