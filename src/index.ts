@@ -18,8 +18,6 @@ export interface ElectronOllamaConfig {
 export interface PlatformConfig {
   os: 'windows' | 'darwin' | 'linux';
   architecture: 'arm64' | 'amd64';
-  variant?: 'rocm';
-  executable: string;
 }
 
 export interface OllamaAssetMetadata {
@@ -114,21 +112,17 @@ export class ElectronOllama {
 
     let osType: 'windows' | 'darwin' | 'linux';
     let architecture: 'arm64' | 'amd64';
-    let executable: string;
 
     // Map platform
     switch (platform) {
       case 'win32':
         osType = 'windows';
-        executable = 'ollama.exe';
         break;
       case 'darwin':
         osType = 'darwin';
-        executable = 'ollama';
         break;
       case 'linux':
         osType = 'linux';
-        executable = 'ollama';
         break;
       default:
         throw new Error(`Unsupported platform: ${platform}`);
@@ -149,7 +143,6 @@ export class ElectronOllama {
     return {
       os: osType,
       architecture,
-      executable,
     };
   }
 
@@ -206,19 +199,20 @@ export class ElectronOllama {
     platformConfig: PlatformConfig = this.currentPlatformConfig()
   ): Promise<void> {
     const metadata = await this.getMetadata(version, platformConfig);
-    const versionDir = path.basename(this.getBinPath(metadata.version, platformConfig));
+    const versionDir = this.getBinPath(metadata.version, platformConfig);
 
     // 1. Create directory if it doesn't exist
     console.log('Creating directory if it doesn\'t exist');
     await fs.mkdir(versionDir, { recursive: true });
 
     // 2. Download the file
-    console.log('Downloading file');
+    console.log(`Downloading file to ${versionDir}`);
     const response = await fetch(metadata.downloadUrl);
     const buffer = await response.arrayBuffer();
     await fs.writeFile(path.join(versionDir, metadata.fileName), Buffer.from(buffer));
 
     // 3. Extract the archive
+    console.log(`Extracting archive ${metadata.fileName} in ${versionDir}`);
     if (metadata.contentType === 'application/zip') {
       await unzip(path.join(versionDir, metadata.fileName), versionDir);
     } else if (['application/x-gtar', 'application/x-tar', 'application/x-gzip', 'application/tar', 'application/gzip', 'application/x-tgz'].includes(metadata.contentType)) {
@@ -253,18 +247,24 @@ export class ElectronOllama {
   }
 
   /**
-   * Get the path to the binary for the given version and platform configuration
+   * Get the path to the directory for the given version and platform configuration
    * @param version - The version to get the binary path for, for example "v0.11.0"
    * @param platformConfig - The platform configuration to use, defaults to the current platform configuration
-   * @returns The path to the binary
+   * @returns The path to the directory
    */
   private getBinPath(version: SpecificVersion, platformConfig: PlatformConfig = this.currentPlatformConfig()): string {
     return path.join(
       this.config.basePath,
       this.config.directory!,
       version,
-      platformConfig.executable
+      platformConfig.os,
+      platformConfig.architecture,
     );
+  }
+
+  private getExecutableName(platformConfig: PlatformConfig): string {
+    const { os } = platformConfig;
+    return os === 'windows' ? 'ollama.exe' : 'ollama';
   }
 
   /**
@@ -282,7 +282,7 @@ export class ElectronOllama {
     const server = new ElectronOllamaServer({ binPath });
 
     // Start the server process
-    const process = spawn(binPath, ['serve']);
+    const process = spawn(binPath, [this.getExecutableName(platformConfig), 'serve']);
 
     server.process = process;
 
