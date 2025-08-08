@@ -263,8 +263,14 @@ export class ElectronOllama {
   }
 
   private getExecutableName(platformConfig: PlatformConfig): string {
-    const { os } = platformConfig;
-    return os === 'windows' ? 'ollama.exe' : 'ollama';
+    switch (platformConfig.os) {
+      case 'windows':
+        return 'ollama.exe';
+      case 'darwin':
+        return 'ollama';
+      case 'linux':
+        return 'bin/ollama';
+    }
   }
 
   /**
