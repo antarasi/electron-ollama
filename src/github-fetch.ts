@@ -7,7 +7,7 @@ export async function githubFetch(url: string): Promise<Response> {
     })
 
     if (!response.ok) {
-      const error = await response.json()
+      const error = await response.text()
       throw new Error(`GitHub request failed: ${error}`)
     }
 
