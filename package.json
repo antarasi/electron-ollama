@@ -15,13 +15,15 @@
     "dev": "tsc --watch",
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
+    "postbuild": "npm run docs",
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "docs": "automd"
   },
   "repository": {
     "type": "git",
@@ -46,6 +48,7 @@
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
+    "automd": "^0.4.0",
     "eslint": "^8.54.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",

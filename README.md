@@ -6,12 +6,12 @@ A TypeScript library for integrating Ollama with Electron.js applications. This 
 
 ## Features
 
+- 🛡️ **No conflict**: Works well with standalone Ollama server (skips installation if Ollama already runs)
+- 🤝 **Maximum compatibility**: Can be imported by ESM and CommonJS packages
 - 🚀 **TypeScript Support**: Full TypeScript support with type definitions
 - 🔧 **Easy Integration**: Simple API for integrating Ollama with Electron apps
-- 📦 **Bundle Management**: Automatically find and manage Ollama executables
+- 📦 **Binaries Management**: Automatically find and manage Ollama executables
 - 🌐 **Cross-Platform**: Support for Windows, macOS, and Linux
-- 🧪 **Testing Ready**: Comprehensive test setup with Jest
-- 📝 **Well Documented**: Complete API documentation and examples
 
 ## Installation
 
@@ -19,258 +19,128 @@ A TypeScript library for integrating Ollama with Electron.js applications. This 
 npm install electron-ollama
 ```
 
-## Quick Start
+## Quick Start - Serve latest version if standalone Ollama is not running
 
 ```typescript
-import { ElectronOllama } from 'electron-ollama';
+import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
 
-// Create an instance
-const ollama = new ElectronOllama({
-  directory: 'electron-ollama',
-});
+const eo = new ElectronOllama({
+  basePath: app.getPath('userData') // binaries downloaded and extracted to <userData>/electron-ollama/<ollama_version>/<os>/<arch>
+})
+let server: ElectronOllamaServer | null = null
 
-// Get current platform configuration
-const platformConfig = ollama.currentPlatformConfig();
-console.log(platformConfig); // { os: 'darwin', architecture: 'arm64', executable: 'ollama' }
-
-// Check if Ollama is running
-const isRunning = await ollama.isRunning();
-
-if (!isRunning) {
-  // Download and start Ollama
-  await ollama.download();
-  const server = await ollama.serve();
-
-  // Use the server...
-  server.stop();
+if (!(await eo.isRunning())) {
+  const metadata = await eo.getMetadata('latest')
+  server = await eo.serve(metadata.version)
+} else {
+  console.log('Ollama server is already running')
 }
+
+// ... keep the server running as long as your app is running
+
+// stop only if server was started by electron-ollama
+if (server) {
+  server.stop()
+}
+```
+
+## Configuration
+
+TBD
+
+## Examples
+
+### Run specific version of Ollama
+
+```typescript
+// TBD
+```
+
+### Download for multiple platforms
+
+```typescript
+// TBD
+```
+
+## List downloaded versions
+
+```typescript
+const eo = new ElectronOllama({
+  basePath: '/Users/amatylewicz/dev/desktop-agent/ollama',
+})
+
+const currentVersion = await eo.downloadedVersions()
+console.log('current platform versions', currentVersion) // [ 'v0.11.0', 'v0.11.3', 'v0.11.4' ]
+const windowsVersions = await eo.downloadedVersions({ os: 'windows', arch: 'arm64' })
+console.log('windows versions', windowsVersions) // [ 'v0.11.0', 'v0.11.1' ]
 ```
 
 ## API Reference
 
-### ElectronOllama Class
+<!-- automd:file src="dist/index.d.ts" code -->
 
-#### Constructor
-
-```typescript
-new ElectronOllama(config?: ElectronOllamaConfig)
-```
-
-**Configuration Options:**
-- `directory`: Directory where Ollama will be stored (default: 'electron-ollama')
-
-#### Methods
-
-##### `currentPlatformConfig(): PlatformConfig`
-Get the current platform configuration.
-
-##### `getMetadata(version?: string, platformConfig?: PlatformConfig): Promise<OllamaMetadata>`
-Get metadata for a specific version and platform.
-
-##### `download(version?: string, platformConfig?: PlatformConfig): Promise<void>`
-Download Ollama for the specified version and platform.
-
-##### `serve(version?: string): Promise<OllamaServer>`
-Start serving Ollama with the specified version.
-
-##### `isRunning(): Promise<boolean>`
-Check if Ollama is running by making a request to localhost:11434.
-
-### OllamaServer Class
-
-#### Constructor
-
-```typescript
-new OllamaServer(config: OllamaServerConfig)
-```
-
-**Configuration Options:**
-- `binPath`: Absolute path to the Ollama executable
-
-#### Methods
-
-##### `stop(): void`
-Stop the Ollama server.
-
-### Types
-
-#### ElectronOllamaConfig
-```typescript
-interface ElectronOllamaConfig {
-  directory?: string;
+```ts [index.d.ts]
+import { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, SpecificVersion, Version } from './types';
+import { ElectronOllamaServer } from './server';
+export type { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, SpecificVersion, Version };
+export { ElectronOllamaServer };
+export declare class ElectronOllama {
+    private config;
+    constructor(config: ElectronOllamaConfig);
+    /**
+     * Get the current platform configuration
+     */
+    currentPlatformConfig(): PlatformConfig;
+    /**
+     * Get the name of the asset for the given platform configuration (e.g. "ollama-windows-amd64.zip" or "ollama-darwin.tgz")
+     */
+    getAssetName(platformConfig: PlatformConfig): string;
+    /**
+     * Get metadata for a specific version ('latest' by default) and platform
+     */
+    getMetadata(version?: Version, platformConfig?: PlatformConfig): Promise<OllamaAssetMetadata>;
+    /**
+     * Download Ollama for the specified version ('latest' by default) and platform
+     */
+    download(version?: Version, platformConfig?: PlatformConfig): Promise<void>;
+    /**
+     * Check if a version is downloaded for the given platform configuration
+     */
+    isDownloaded(version: SpecificVersion, platformConfig?: PlatformConfig): Promise<boolean>;
+    /**
+     * List all downloaded versions for the given platform configuration
+     */
+    downloadedVersions(platformConfig?: PlatformConfig): Promise<string[]>;
+    /**
+     * Get the path to the directory for the given version and platform configuration
+     */
+    getBinPath(version: SpecificVersion, platformConfig?: PlatformConfig): string;
+    /**
+     * Get the name of the executable for the given platform configuration
+     */
+    getExecutableName(platformConfig: PlatformConfig): string;
+    /**
+     * Start serving Ollama with the specified version
+     */
+    serve(version: SpecificVersion): Promise<ElectronOllamaServer>;
+    /**
+     * Check if Ollama is running
+     */
+    isRunning(): Promise<boolean>;
 }
+export default ElectronOllama;
+//# sourceMappingURL=index.d.ts.map
 ```
 
-#### PlatformConfig
-```typescript
-interface PlatformConfig {
-  os: 'windows' | 'darwin' | 'linux';
-  architecture: 'arm64' | 'amd64';
-  variant?: 'rocm';
-  executable: string;
-}
-```
+<!-- /automd -->
 
-#### OllamaMetadata
-```typescript
-interface OllamaMetadata {
-  sha256: string;
-  size: number;
-  assetName: string;
-  version: string;
-  downloads: number;
-  downloadUrl: string;
-  releaseUrl: string;
-}
-```
+## Ollama Clients
 
-#### OllamaServerConfig
-```typescript
-interface OllamaServerConfig {
-  binPath: string;
-}
-```
+- [ollama-js](https://github.com/ollama/ollama-js)
 
-## Examples
+## TODO
 
-### Basic Usage
-
-```typescript
-import { ElectronOllama } from 'electron-ollama';
-
-const ollama = new ElectronOllama();
-
-async function main() {
-  try {
-    // Get platform info
-    const platform = ollama.currentPlatformConfig();
-    console.log('Platform:', platform);
-
-    // Check if running
-    const isRunning = await ollama.isRunning();
-    console.log('Ollama running:', isRunning);
-
-    if (!isRunning) {
-      // Get metadata
-      const metadata = await ollama.getMetadata();
-      console.log('Latest version:', metadata.version);
-
-      // Download and start
-      await ollama.download();
-      const server = await ollama.serve();
-
-      // Wait for startup
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Verify it's running
-      const nowRunning = await ollama.isRunning();
-      console.log('Now running:', nowRunning);
-
-      // Stop when done
-      server.stop();
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-main();
-```
-
-### Version-Specific Usage
-
-```typescript
-import { ElectronOllama } from 'electron-ollama';
-
-const ollama = new ElectronOllama();
-
-async function specificVersion() {
-  // Get metadata for specific version
-  const metadata = await ollama.getMetadata('v0.8.0');
-  console.log('Version info:', metadata);
-
-  // Download specific version
-  await ollama.download('v0.8.0');
-
-  // Serve specific version
-  const server = await ollama.serve('v0.8.0');
-
-  // Use the server...
-  server.stop();
-}
-
-specificVersion();
-```
-
-### Cross-Platform Usage
-
-```typescript
-import { ElectronOllama } from 'electron-ollama';
-
-const ollama = new ElectronOllama();
-
-async function crossPlatform() {
-  // Custom platform configuration
-  const customPlatform = {
-    os: 'linux' as const,
-    architecture: 'amd64' as const,
-    executable: 'ollama',
-  };
-
-  // Get metadata for custom platform
-  const metadata = await ollama.getMetadata('latest', customPlatform);
-  console.log('Linux AMD64 metadata:', metadata);
-
-  // Download for custom platform
-  await ollama.download('latest', customPlatform);
-}
-
-crossPlatform();
-```
-
-## Development
-
-### Prerequisites
-
-- Node.js 18+
-- npm or yarn
-
-### Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/antarasi/electron-ollama.git
-cd electron-ollama
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Build the project:
-```bash
-npm run build
-```
-
-### Available Scripts
-
-- `npm run build` - Build the TypeScript code
-- `npm run dev` - Watch mode for development
-- `npm run test` - Run tests
-- `npm run test:watch` - Run tests in watch mode
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
-- `npm run format` - Format code with Prettier
-- `npm run type-check` - Type check without emitting files
-
-### Testing
-
-```bash
-npm test
-```
-
-The project includes comprehensive tests with Jest and proper mocking for Node.js modules.
+- Detect AMD ROCM support and support additional platform variants like jetpack
 
 ## Contributing
 
