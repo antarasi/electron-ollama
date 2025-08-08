@@ -17,7 +17,7 @@ export interface ElectronOllamaConfig {
 
 export interface PlatformConfig {
   os: 'windows' | 'darwin' | 'linux';
-  architecture: 'arm64' | 'amd64';
+  arch: 'arm64' | 'amd64';
 }
 
 export interface OllamaAssetMetadata {
@@ -142,12 +142,12 @@ export class ElectronOllama {
 
     return {
       os: osType,
-      architecture,
+      arch: architecture,
     };
   }
 
   public getAssetName(platformConfig: PlatformConfig): string {
-    const { os, architecture } = platformConfig;
+    const { os, arch: architecture } = platformConfig;
 
     switch (os) {
       case 'windows':
@@ -166,7 +166,7 @@ export class ElectronOllama {
     version: Version = 'latest',
     platformConfig: PlatformConfig = this.currentPlatformConfig()
   ): Promise<OllamaAssetMetadata> {
-    const { os, architecture } = platformConfig;
+    const { os, arch: architecture } = platformConfig;
 
     const releaseUrlPath = version === 'latest' ? `latest` : `tags/${version}`;
     const gitHubResponse = await githubFetch(`https://api.github.com/repos/ollama/ollama/releases/${releaseUrlPath}`);
@@ -258,7 +258,7 @@ export class ElectronOllama {
       this.config.directory!,
       version,
       platformConfig.os,
-      platformConfig.architecture,
+      platformConfig.arch,
     );
   }
 

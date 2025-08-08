@@ -133,7 +133,7 @@ describe('ElectronOllama', () => {
 
       expect(config).toEqual({
         os: 'darwin',
-        architecture: 'arm64',
+        arch: 'arm64',
       });
     });
 
@@ -145,7 +145,7 @@ describe('ElectronOllama', () => {
 
       expect(config).toEqual({
         os: 'windows',
-        architecture: 'amd64',
+        arch: 'amd64',
       });
     });
 
@@ -157,7 +157,7 @@ describe('ElectronOllama', () => {
 
       expect(config).toEqual({
         os: 'linux',
-        architecture: 'amd64',
+        arch: 'amd64',
       });
     });
 
@@ -179,7 +179,7 @@ describe('ElectronOllama', () => {
     it('should return correct asset name for Windows AMD64', () => {
       const platformConfig: PlatformConfig = {
         os: 'windows',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -189,7 +189,7 @@ describe('ElectronOllama', () => {
     it('should return correct asset name for macOS', () => {
       const platformConfig: PlatformConfig = {
         os: 'darwin',
-        architecture: 'arm64',
+        arch: 'arm64',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -199,7 +199,7 @@ describe('ElectronOllama', () => {
     it('should return correct asset name for Linux AMD64', () => {
       const platformConfig: PlatformConfig = {
         os: 'linux',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       const assetName = ollama.getAssetName(platformConfig);
@@ -245,7 +245,7 @@ describe('ElectronOllama', () => {
     it('should return metadata for custom platform config', async () => {
       const platformConfig: PlatformConfig = {
         os: 'linux',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       const metadata = await ollama.getMetadata('latest', platformConfig);
@@ -295,7 +295,7 @@ describe('ElectronOllama', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const platformConfig: PlatformConfig = {
         os: 'windows',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       await ollama.download('v0.8.0', platformConfig);
@@ -323,7 +323,7 @@ describe('ElectronOllama', () => {
 
       const platformConfig: PlatformConfig = {
         os: 'linux',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       await ollama.download('latest', platformConfig);
@@ -347,7 +347,7 @@ describe('ElectronOllama', () => {
 
       const platformConfig: PlatformConfig = {
         os: 'windows',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       await ollama.download('latest', platformConfig);
@@ -371,7 +371,7 @@ describe('ElectronOllama', () => {
 
       const platformConfig: PlatformConfig = {
         os: 'windows',
-        architecture: 'amd64',
+        arch: 'amd64',
       };
 
       await expect(ollama.download('latest', platformConfig))
