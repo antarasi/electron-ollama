@@ -140,8 +140,7 @@ export class ElectronOllama {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }
 
-    // 4. Set executable permissions
-    // 5. Verify checksum
+    // 4. Verify checksum
   }
 
   /**
@@ -157,7 +156,8 @@ export class ElectronOllama {
    */
   public async downloadedVersions(platformConfig: PlatformConfig = this.currentPlatformConfig()): Promise<string[]> {
     const versions = await fs.readdir(path.join(this.config.basePath, this.config.directory!));
-    return versions.filter((version) => this.isDownloaded(version as SpecificVersion, platformConfig));
+    const downloaded = await Promise.all(versions.map((version) => this.isDownloaded(version as SpecificVersion, platformConfig)));
+    return versions.filter((_version, index) => downloaded[index]);
   }
 
   /**
