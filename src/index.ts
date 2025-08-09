@@ -155,7 +155,13 @@ export class ElectronOllama {
    * List all downloaded versions for the given platform configuration
    */
   public async downloadedVersions(platformConfig: PlatformConfig = this.currentPlatformConfig()): Promise<string[]> {
-    const versions = await fs.readdir(path.join(this.config.basePath, this.config.directory!));
+    let versions: string[] = []
+    try {
+      versions = await fs.readdir(path.join(this.config.basePath, this.config.directory!));
+    } catch {
+      return [] // directory does not exist - nothing to list
+    }
+
     const downloaded = await Promise.all(versions.map((version) => this.isDownloaded(version as SpecificVersion, platformConfig)));
     return versions.filter((_version, index) => downloaded[index]);
   }

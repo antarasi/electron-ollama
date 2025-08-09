@@ -53,7 +53,7 @@ main()
 
 <!-- /automd -->
 
-### Try it
+#### Try it
 ```bash
 npm run build
 npx tsx examples/serve-latest.ts
@@ -105,7 +105,7 @@ main()
 
 <!-- /automd -->
 
-### Try it
+#### Try it
 ```bash
 npm run build
 npx tsx examples/serve-version.ts
@@ -138,7 +138,7 @@ main()
 
 <!-- /automd -->
 
-### Try it
+#### Try it
 ```bash
 npm run build
 npx tsx examples/download-windows-mac-linux.ts
@@ -168,7 +168,7 @@ main()
 
 <!-- /automd -->
 
-### Try it
+#### Try it
 ```bash
 npm run build
 npx tsx examples/list-downloaded.ts
@@ -240,6 +240,7 @@ export default ElectronOllama;
 ## TODO
 
 - Detect AMD ROCM support and support additional platform variants like jetpack
+- Investigate if any prerequisites are required to be installed first like vc_redist.exe on windows
 
 ## Contributing
 
