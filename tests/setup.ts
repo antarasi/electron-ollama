@@ -1,22 +1,3 @@
-// Mock Electron modules for testing
-jest.mock('electron', () => ({
-  app: {
-    on: jest.fn(),
-    whenReady: jest.fn().mockResolvedValue(undefined),
-  },
-  BrowserWindow: jest.fn().mockImplementation(() => ({
-    loadURL: jest.fn(),
-    webContents: {
-      on: jest.fn(),
-    },
-    on: jest.fn(),
-  })),
-  ipcMain: {
-    on: jest.fn(),
-    handle: jest.fn(),
-  },
-}));
-
 // Mock child_process
 jest.mock('child_process', () => ({
   spawn: jest.fn().mockReturnValue({

@@ -237,6 +237,12 @@ export default ElectronOllama;
 
 - [ollama-js](https://github.com/ollama/ollama-js)
 
+## Notes
+
+- While the primary use case of this package is to seamlessly integrate Ollama with an Electron app, this package intentionally doesn't have a dependency on Electron itself. By simply providing a different `basePath` than the electron `app.getPath('userData')` you can manage Ollama process on virtually any NodeJS app.
+- This library does not modify Ollama binaries. The Ollama server is provided as is. electron-ollama is merely a convenience library to pick the appropriate binary for os/arch and start the server if needed.
+- You can use electron-ollama as runtime dependency to manage LLM backend in the app or you can use it as part of your prebuild script to ship Ollama binaries with your app.
+
 ## TODO
 
 - Detect AMD ROCM support and support additional platform variants like jetpack

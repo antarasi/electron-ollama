@@ -59,12 +59,8 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
-    "electron": ">=20.0.0",
     "tar": "^7.4.3",
     "yauzl": "^3.2.0"
-  },
-  "peerDependencies": {
-    "electron": ">=20.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
