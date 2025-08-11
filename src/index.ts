@@ -142,6 +142,8 @@ export class ElectronOllama {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }
 
+    console.log(`Extracted archive ${metadata.fileName} to ${versionDir}`);
+
     // 4. Verify checksum
   }
 
