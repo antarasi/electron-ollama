@@ -481,17 +481,25 @@ describe('OllamaServer', () => {
     expect(server).toBeInstanceOf(ElectronOllamaServer);
   });
 
-  it('should stop the server', () => {
+  it('should stop the server', async () => {
     const config = { binPath: '/path/to/ollama', log: jest.fn() };
     const server = new ElectronOllamaServer(config);
 
     // Mock the process
+    const closeHandlers: (() => void)[] = [];
     const mockProcess = {
-      kill: jest.fn(),
+      kill: jest.fn().mockImplementation(() => {
+        closeHandlers.forEach(close => close());
+      }),
+      on: jest.fn().mockImplementation((event: string, callback: () => void) => {
+        if (event === 'close') {
+          closeHandlers.push(callback);
+        }
+      }),
     } as unknown as ChildProcess;
     (server as unknown as { process: ChildProcess | null }).process = mockProcess;
 
-    server.stop();
+    await server.stop();
 
     expect(mockProcess.kill).toHaveBeenCalled();
     expect((server as unknown as { process: ChildProcess | null }).process).toBeNull();

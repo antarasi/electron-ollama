@@ -17,7 +17,7 @@ async function main() {
 
     console.log('Currently running Ollama', liveVersion)
 
-    server.stop()
+    await server.stop() // gracefully stop the server with 5s timeout
   } else {
     console.log('Ollama server is already running')
   }

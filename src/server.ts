@@ -18,7 +18,7 @@ export class ElectronOllamaServer {
     });
 
     if (!this.process?.pid) {
-      this.stop();
+      this.stop(); // TODO should await
       this.log('Failed to start Ollama server process: ' + path.join(this.binPath, executableName))
       throw new Error('Failed to start Ollama server process')
     }
@@ -41,10 +41,28 @@ export class ElectronOllamaServer {
   /**
    * Stop the Ollama server
    */
-  public stop(): void {
-    if (this.process) {
+  public stop(): Promise<void> {
+    return new Promise((resolve) => {
+      if (!this.process) {
+        return resolve();
+      }
+
+      const cleanup = () => {
+        this.process = null;
+        resolve();
+      };
+
+      const timeout = setTimeout(() => {
+        this.log('Timeout waiting for Ollama server to close, forcing cleanup');
+        cleanup();
+      }, 5000);
+
+      this.process.on('close', () => {
+        clearTimeout(timeout);
+        cleanup();
+      });
+
       this.process.kill();
-      this.process = null;
-    }
+    });
   }
 }

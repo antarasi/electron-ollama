@@ -24,7 +24,7 @@ describe('Serve specific version', () => {
         throw new Error('Ollama server is already running')
       }
     } finally {
-      server?.stop()
+      await server?.stop()
     }
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Listening on 127.0.0.1:11434'))
