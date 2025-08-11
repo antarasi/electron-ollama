@@ -2,10 +2,11 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
 import { githubFetch } from './github-fetch';
-import { unzip } from './unzip';
-import { untgz } from './untgz';
+import { unzipFile } from './unzip';
+import { untgzStream } from './untgz';
 import { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, GitHubRelease, SpecificVersion, Version } from './types';
 import { ElectronOllamaServer } from './server';
+import { Readable } from 'stream';
 export type { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, SpecificVersion, Version };
 export { ElectronOllamaServer };
 
@@ -127,15 +128,16 @@ export class ElectronOllama {
     // 2. Download the file
     console.log(`Downloading file to ${versionDir}`);
     const response = await fetch(metadata.downloadUrl);
-    const buffer = await response.arrayBuffer();
-    await fs.writeFile(path.join(versionDir, metadata.fileName), Buffer.from(buffer));
 
     // 3. Extract the archive
     console.log(`Extracting archive ${metadata.fileName} in ${versionDir}`);
     if (metadata.contentType === 'application/zip') {
-      await unzip(path.join(versionDir, metadata.fileName), versionDir);
+      const buffer = await response.arrayBuffer();
+      await fs.writeFile(path.join(versionDir, metadata.fileName), Buffer.from(buffer));
+      await unzipFile(path.join(versionDir, metadata.fileName), versionDir, true);
     } else if (['application/x-gtar', 'application/x-tar', 'application/x-gzip', 'application/tar', 'application/gzip', 'application/x-tgz'].includes(metadata.contentType)) {
-      await untgz(path.join(versionDir, metadata.fileName), versionDir);
+      const stream = Readable.from(response.body!);
+      await untgzStream(stream, versionDir);
     } else {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }

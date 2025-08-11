@@ -2,7 +2,7 @@ import yauzl from 'yauzl';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export async function unzip(filePath: string, outputDir: string): Promise<void> {
+export async function unzipFile(filePath: string, outputDir: string, deleteZip: boolean = true): Promise<void> {
     return new Promise((resolve, reject) => {
         yauzl.open(filePath, {lazyEntries: true}, function(err, zipfile) {
             if (err) {
@@ -25,11 +25,14 @@ export async function unzip(filePath: string, outputDir: string): Promise<void> 
                         zipfile.readEntry();
                     });
                     readStream.pipe(fs.createWriteStream(path.join(outputDir, entry.fileName)));
-                    });
+                  });
                 }
             });
-            zipfile.on("close", function() {
-                resolve();
+            zipfile.on("close", async function() {
+              if (deleteZip) {
+                await fs.promises.unlink(filePath).catch(() => {}); // delete zip file after extraction, no harm if it fails
+              }
+              resolve();
             });
             zipfile.on("error", function(err) {
                 return reject(err);
