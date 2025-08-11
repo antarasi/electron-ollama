@@ -11,8 +11,6 @@ async function main() {
   if (!(await eo.isRunning())) {
     server = await eo.serve('v0.11.0') // Welcome OpenAI's gpt-oss models
 
-    await new Promise(resolve => setTimeout(resolve, 2000)) // wait for server to start
-
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
 
     console.log('Currently running Ollama', liveVersion)

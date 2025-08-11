@@ -213,7 +213,16 @@ export class ElectronOllama {
     });
     server.start(this.getExecutableName(platformConfig));
 
-    return server;
+    // Wait for the server to start
+    for (let i = 0; i < 50; i++) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (await this.isRunning()) {
+        return server;
+      }
+    }
+
+    throw new Error('Ollama server failed to start in 5 seconds');
   }
 
   /**

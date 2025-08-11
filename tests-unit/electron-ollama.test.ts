@@ -381,16 +381,27 @@ describe('ElectronOllama', () => {
 
   describe('serve', () => {
     it('should create OllamaServer instance', async () => {
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      fetchSpy.mockResolvedValue({
+        text: jest.fn().mockResolvedValue('Ollama is running'),
+      } as unknown as Response);
+
       const server = await ollama.serve('v0.11.0');
 
       expect(server).toBeInstanceOf(ElectronOllamaServer);
+
+      fetchSpy.mockRestore();
     });
 
     it('should download binary if it does not exist', async () => {
       mockFsAccess.mockRejectedValue(new Error('File not found'));
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const mockResponse = {
+        // text is used by isRunning
+        text: jest.fn().mockResolvedValue('Ollama is running'),
+        // arrayBuffer is used by download
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
+        // body is used by download
         body: {
           [Symbol.asyncIterator]: async function* () {
             yield new Uint8Array([0, 1, 2, 3]);
@@ -407,6 +418,21 @@ describe('ElectronOllama', () => {
       expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
 
       consoleSpy.mockRestore();
+      fetchSpy.mockRestore();
+    });
+
+    it('should throw error when server fails to start', async () => {
+      // Mock setTimeout to resolve immediately instead of waiting
+      const setTimeoutSpy: jest.SpyInstance = jest.spyOn(global, 'setTimeout');
+      setTimeoutSpy.mockImplementation((callback: () => void) => callback());
+
+      // Mock isRunning to always return false so the server never starts
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      fetchSpy.mockRejectedValue(new Error('Connection failed'));
+
+      await expect(ollama.serve('v0.11.0')).rejects.toThrow('Ollama server failed to start in 5 seconds');
+
+      setTimeoutSpy.mockRestore();
       fetchSpy.mockRestore();
     });
   });
