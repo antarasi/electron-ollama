@@ -17,6 +17,12 @@ export class ElectronOllamaServer {
       cwd: this.binPath,
     });
 
+    if (!this.process?.pid) {
+      this.stop();
+      this.log('Failed to start Ollama server process: ' + path.join(this.binPath, executableName))
+      throw new Error('Failed to start Ollama server process')
+    }
+
     this.log(`Ollama server pid: ${this.process.pid}`);
 
     this.process.stdout?.on('data', data => this.log(`${data}`));
