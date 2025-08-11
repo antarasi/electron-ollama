@@ -1,6 +1,7 @@
 // Mock child_process
 jest.mock('child_process', () => ({
   spawn: jest.fn().mockReturnValue({
+    pid: 123,
     stdout: {
       on: jest.fn(),
     },
@@ -106,14 +107,11 @@ jest.mock('yauzl', () => ({
 
 // Mock fs/promises
 jest.mock('fs/promises', () => ({
-  access: jest.fn(),
-  readdir: jest.fn(),
+  access: jest.fn().mockResolvedValue(undefined),
+  readdir: jest.fn().mockResolvedValue([]),
   mkdir: jest.fn().mockResolvedValue(undefined),
   writeFile: jest.fn().mockResolvedValue(undefined)
 }));
-
-// Mock fetch globally
-global.fetch = jest.fn() as jest.MockedFunction<typeof fetch>;
 
 // Increase timeout for tests
 jest.setTimeout(10000);

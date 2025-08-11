@@ -10,26 +10,11 @@ jest.mock('fs');
 jest.mock('fs/promises');
 jest.mock('os');
 jest.mock('../src/unzip', () => ({
-  unzip: jest.fn().mockResolvedValue(undefined),
+  unzipFile: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../src/untgz', () => ({
-  untgz: jest.fn().mockResolvedValue(undefined),
+  untgzStream: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('child_process', () => ({
-  spawn: jest.fn().mockReturnValue({
-    stdout: {
-      on: jest.fn(),
-    },
-    stderr: {
-      on: jest.fn(),
-    },
-    on: jest.fn(),
-    kill: jest.fn(),
-  }),
-}));
-
-// Mock global fetch
-global.fetch = jest.fn();
 
 // Mock githubFetch
 jest.mock('../src/github-fetch', () => ({
@@ -44,14 +29,15 @@ const mockArch = os.arch as jest.MockedFunction<typeof os.arch>;
 import * as fsPromises from 'fs/promises';
 const mockFsAccess = fsPromises.access as jest.MockedFunction<typeof fsPromises.access>;
 const mockFsReaddir = fsPromises.readdir as jest.MockedFunction<typeof fsPromises.readdir> & { mockImplementation: (fn: () => Promise<fs.Dirent[]>) => void };
+const mockFsWriteFile = fsPromises.writeFile as jest.MockedFunction<typeof fsPromises.writeFile>;
 
 // Import the mocked modules
 import { githubFetch } from '../src/github-fetch';
-import { unzip } from '../src/unzip';
-import { untgz } from '../src/untgz';
+import { unzipFile } from '../src/unzip';
+import { untgzStream } from '../src/untgz';
 const mockGithubFetch = githubFetch as jest.MockedFunction<typeof githubFetch>;
-const mockUnzip = unzip as jest.MockedFunction<typeof unzip>;
-const mockUntgz = untgz as jest.MockedFunction<typeof untgz>;
+const mockUnzip = unzipFile as jest.MockedFunction<typeof unzipFile>;
+const mockUntgz = untgzStream as jest.MockedFunction<typeof untgzStream>;
 
 // Mock GitHub API response data
 import mockGitHubRelease from './github-release.mock.json';
@@ -67,6 +53,7 @@ describe('ElectronOllama', () => {
 
     // Mock fs/promises methods
     mockFsAccess.mockResolvedValue(undefined);
+    mockFsWriteFile.mockResolvedValue(undefined);
     mockFsReaddir.mockImplementation(() => {
       const dirents = [
         {
@@ -271,12 +258,23 @@ describe('ElectronOllama', () => {
   });
 
   describe('download', () => {
+    let fetchSpy: jest.SpyInstance;
+
     beforeEach(() => {
-      jest.clearAllMocks();
+      fetchSpy = jest.spyOn(global, 'fetch');
       const mockResponse = {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
+        body: {
+          [Symbol.asyncIterator]: async function* () {
+            yield new Uint8Array([0, 1, 2, 3]);
+          }
+        },
       };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      fetchSpy.mockResolvedValue(mockResponse);
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
     });
 
     it('should call getMetadata and log download info', async () => {
@@ -393,8 +391,14 @@ describe('ElectronOllama', () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       const mockResponse = {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
+        body: {
+          [Symbol.asyncIterator]: async function* () {
+            yield new Uint8Array([0, 1, 2, 3]);
+          }
+        },
       };
-      (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      fetchSpy.mockResolvedValue(mockResponse);
 
       await ollama.serve('v0.11.0');
 
@@ -403,6 +407,7 @@ describe('ElectronOllama', () => {
       expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
 
       consoleSpy.mockRestore();
+      fetchSpy.mockRestore();
     });
   });
 
@@ -428,32 +433,42 @@ describe('ElectronOllama', () => {
 
   describe('isRunning', () => {
     it('should return true when Ollama is running', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      const mockResponse = {
         text: jest.fn().mockResolvedValue('Ollama is running'),
-      });
+      };
+      fetchSpy.mockResolvedValue(mockResponse);
 
       const result = await ollama.isRunning();
 
       expect(result).toBe(true);
-      expect(global.fetch).toHaveBeenCalledWith('http://localhost:11434');
+      expect(fetchSpy).toHaveBeenCalledWith('http://localhost:11434');
+
+      fetchSpy.mockRestore();
     });
 
     it('should return false when Ollama is not running', async () => {
-      (global.fetch as jest.Mock).mockResolvedValue({
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      const mockResponse = {
         text: jest.fn().mockResolvedValue('Something else'),
-      });
+      };
+      fetchSpy.mockResolvedValue(mockResponse);
 
       const result = await ollama.isRunning();
 
       expect(result).toBe(false);
+
+      fetchSpy.mockRestore();
     });
 
     it('should return false when fetch fails', async () => {
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+      const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
+      fetchSpy.mockRejectedValue(new Error('Network error'));
 
       const result = await ollama.isRunning();
 
       expect(result).toBe(false);
+      fetchSpy.mockRestore();
     });
   });
 });

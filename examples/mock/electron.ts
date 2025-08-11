@@ -1,9 +1,16 @@
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
+import { resolve, join } from 'node:path';
+import * as fs from 'node:fs';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const examplesDir = join(process.cwd(), 'examples')
+if (!fs.existsSync(examplesDir)) {
+  throw new Error(`${examplesDir} directory not found`)
+}
+
+const examplesDirStat = fs.lstatSync(examplesDir)
+if (!examplesDirStat.isDirectory()) {
+  throw new Error(`${examplesDir} is not a directory`)
+}
 
 export const app = {
-  getPath: (folder: string) => resolve(__dirname, '..', folder),
+  getPath: (folder: string) => resolve(examplesDir, folder),
 }
