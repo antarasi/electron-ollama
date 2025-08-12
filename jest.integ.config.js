@@ -15,5 +15,5 @@ module.exports = {
   coverageDirectory: 'coverage-integ',
   coverageReporters: ['text', 'lcov', 'html'],
   moduleFileExtensions: ['ts', 'js', 'json'],
-  testTimeout: 900000,
+  testTimeout: 120000, // 2 minutes
 };

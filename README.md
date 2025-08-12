@@ -243,6 +243,7 @@ export default ElectronOllama;
 
 ## TODO
 
+- Integ testing on Windows
 - Detect AMD ROCM support and support additional platform variants like jetpack
 - Investigate if any prerequisites are required to be installed first like vc_redist.exe on windows
 
