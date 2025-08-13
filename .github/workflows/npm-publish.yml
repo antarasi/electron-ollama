@@ -23,39 +23,23 @@ jobs:
   test-integ-ubuntu:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Cache userData
-        uses: actions/cache@v4
-        with:
-          path: examples/userData
-          key: ${{ runner.os }}-userdata-${{ hashFiles('examples/**') }}
-          restore-keys: |
-            ${{ runner.os }}-userdata-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm ci
       - run: npm run test:integ
 
-  # test-integ-windows:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Cache userData
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: examples/userData
-  #         key: ${{ runner.os }}-userdata-${{ hashFiles('examples/**') }}
-  #         restore-keys: |
-  #           ${{ runner.os }}-userdata-
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #     - run: npm ci
-  #     - run: npm run test:integ
+  test-integ-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run test:integ
 
   publish-npm:
-    needs: [build, test-integ-ubuntu] # , test-integ-windows
+    needs: [build, test-integ-ubuntu, test-integ-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
