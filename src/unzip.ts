@@ -2,15 +2,18 @@ import yauzl from 'yauzl';
 import * as fs from 'fs';
 import * as path from 'path';
 
-function mkdirp(dir: string, cb: () => void) {
+function mkdirp(dir: string, cb: (err?: Error) => void) {
   if (dir === ".") return cb();
   fs.stat(dir, function(err) {
     if (err == null) return cb(); // already exists
 
     const parent = path.dirname(dir);
-    mkdirp(parent, function() {
-      process.stdout.write(dir.replace(/\/$/, "") + "/\n");
-      fs.mkdir(dir, cb);
+    mkdirp(parent, function(err) {
+      if (err) return cb(err);
+
+      fs.mkdir(dir, function(err) {
+        cb(err || undefined);
+      });
     });
   });
 }
@@ -71,6 +74,9 @@ export async function unzipFile(filePath: string, outputDir: string, deleteZip: 
               const writeStream = fs.createWriteStream(path.join(outputDir, entry.fileName));
               incrementHandleCount();
               writeStream.on("close", decrementHandleCount);
+              writeStream.on("error", function(err) {
+                return reject(err);
+              });
               readStream.pipe(writeStream);
             });
           });
