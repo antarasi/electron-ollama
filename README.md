@@ -3,6 +3,7 @@
 A TypeScript library for integrating Ollama with Electron.js applications. This library provides a seamless way to bundle and manage Ollama within your Electron app for a better user experience.
 
 [![npm version](https://img.shields.io/npm/v/electron-ollama)](https://npmjs.com/package/electron-ollama)
+![github action](https://github.com/antarasi/electron-ollama/actions/workflows/npm-publish.yml/badge.svg)
 
 
 ## Why
