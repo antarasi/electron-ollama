@@ -4,17 +4,8 @@ import * as path from 'path';
 
 function mkdirp(dir: string, cb: (err?: Error) => void) {
   if (dir === ".") return cb();
-  fs.stat(dir, function(err) {
-    if (err == null) return cb(); // already exists
-
-    const parent = path.dirname(dir);
-    mkdirp(parent, function(err) {
-      if (err) return cb(err);
-
-      fs.mkdir(dir, function(err) {
-        cb(err || undefined);
-      });
-    });
+  fs.mkdir(dir, { recursive: true }, function(err) {
+    cb(err || undefined);
   });
 }
 
