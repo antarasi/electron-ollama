@@ -42,7 +42,7 @@ export async function unzipFile(filePath: string, outputDir: string, deleteZip: 
           // Directory file names end with '/'.
           // Note that entries for directories themselves are optional.
           // An entry's fileName implicitly requires its parent directories to exist.
-          mkdirp(path.join(outputDir, entry.fileName), function() {
+          mkdirp(path.join(outputDir, entry.fileName), function(err) {
             if (err) return reject(err);
             zipfile.readEntry();
           });
@@ -51,7 +51,9 @@ export async function unzipFile(filePath: string, outputDir: string, deleteZip: 
 
           const filePath = path.join(outputDir, entry.fileName);
 
-          mkdirp(path.dirname(filePath), function() {
+          mkdirp(path.dirname(filePath), function(err) {
+            if (err) return reject(err);
+
             zipfile.openReadStream(entry, function(err, readStream) {
               if (err) return reject(err);
 
