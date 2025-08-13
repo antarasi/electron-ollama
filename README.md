@@ -17,7 +17,7 @@ It detects existing Ollama instance or installs automatically if missing, so use
 - 🚀 **TypeScript Support**: Full TypeScript support with type definitions
 - 🔧 **Easy Integration**: Simple API for integrating Ollama with Electron apps
 - 📦 **Binaries Management**: Automatically find and manage Ollama executables
-- 🌐 **Cross-Platform**: Support for Windows, macOS, and Linux
+- 🌐 **Cross-Platform**: Tested on Windows, macOS, and Linux
 
 ## Installation
 
@@ -243,7 +243,6 @@ export default ElectronOllama;
 
 ## TODO
 
-- Integ testing on Windows
 - Detect AMD ROCM support and support additional platform variants like jetpack
 - Investigate if any prerequisites are required to be installed first like vc_redist.exe on windows
 
