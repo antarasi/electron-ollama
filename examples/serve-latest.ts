@@ -4,13 +4,12 @@ import { app } from './mock/electron' // on electron app replace with: import { 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
-    serveLog: (message) => console.log('Ollama: ', message),
   })
   let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
     const metadata = await eo.getMetadata('latest')
-    server = await eo.serve(metadata.version)
+    server = await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
   } else {
     console.log('Ollama server is already running')
   }

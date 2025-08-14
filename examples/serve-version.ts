@@ -4,12 +4,11 @@ import { app } from './mock/electron' // on electron app replace with: import { 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
-    serveLog: (message) => console.log('Ollama: ', message),
   })
   let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
-    server = await eo.serve('v0.11.0') // Welcome OpenAI's gpt-oss models
+    server = await eo.serve('v0.11.0', { log: (message) => console.log('[Ollama]', message) }) // Welcome OpenAI's gpt-oss models
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
 

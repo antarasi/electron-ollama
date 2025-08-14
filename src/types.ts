@@ -5,7 +5,6 @@ export type Version = SpecificVersion | LatestVersion;
 export interface ElectronOllamaConfig {
   basePath: string;
   directory?: string;
-  serveLog?: (message: string) => void;
 }
 
 export interface PlatformConfig {

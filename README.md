@@ -3,7 +3,7 @@
 A TypeScript library for integrating Ollama with Electron.js applications. This library provides a seamless way to bundle and manage Ollama within your Electron app for a better user experience.
 
 [![npm version](https://img.shields.io/npm/v/electron-ollama)](https://npmjs.com/package/electron-ollama)
-![github action](https://github.com/antarasi/electron-ollama/actions/workflows/npm-publish.yml/badge.svg)
+[![github action](https://github.com/antarasi/electron-ollama/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/antarasi/electron-ollama/actions/workflows/npm-publish.yml)
 
 
 ## Why
@@ -37,13 +37,12 @@ import { app } from './mock/electron' // on electron app replace with: import { 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
-    serveLog: (message) => console.log('Ollama: ', message),
   })
   let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
     const metadata = await eo.getMetadata('latest')
-    server = await eo.serve(metadata.version)
+    server = await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
   } else {
     console.log('Ollama server is already running')
   }
@@ -62,12 +61,10 @@ npx tsx examples/serve-latest.ts
 
 ## Configuration
 
-
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `basePath` | `string` | Yes | - | The base directory where Ollama binaries will be downloaded and stored. Typically `app.getPath('userData')` in Electron apps. |
 | `directory` | `string` | No | `'electron-ollama'` | Subdirectory name within `basePath` where Ollama versions will be organized. Final path structure: `{basePath}/{directory}/{version}/{os}/{arch}/` |
-| `serveLog` | `(message: string) => void` | No | `undefined` | Optional callback function to handle log messages from the Ollama server. Useful for debugging or displaying server status in your application. |
 
 ## Examples
 
@@ -82,12 +79,11 @@ import { app } from './mock/electron' // on electron app replace with: import { 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
-    serveLog: (message) => console.log('Ollama: ', message),
   })
   let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
-    server = await eo.serve('v0.11.0') // Welcome OpenAI's gpt-oss models
+    server = await eo.serve('v0.11.0', { log: (message) => console.log('[Ollama]', message) }) // Welcome OpenAI's gpt-oss models
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
 
@@ -220,7 +216,9 @@ export declare class ElectronOllama {
     /**
      * Start serving Ollama with the specified version
      */
-    serve(version: SpecificVersion): Promise<ElectronOllamaServer>;
+    serve(version: SpecificVersion, { log }?: {
+        log?: (message: string) => void;
+    }): Promise<ElectronOllamaServer>;
     /**
      * Check if Ollama is running
      */

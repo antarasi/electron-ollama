@@ -8,13 +8,12 @@ describe('Serve specific version', () => {
 
     const eo = new ElectronOllama({
       basePath: app.getPath('userData'), // share examples userData folder
-      serveLog: (message) => console.log(message),
     })
     let server: ElectronOllamaServer | null = null
 
     try {
       if (!(await eo.isRunning())) {
-        server = await eo.serve('v0.11.0') // Welcome OpenAI's gpt-oss models
+        server = await eo.serve('v0.11.0', { log: (message) => console.log(message) }) // Welcome OpenAI's gpt-oss models
 
         const liveVersionText = await fetch('http://localhost:11434/api/version').then(res => res.text())
         expect(liveVersionText).toStrictEqual('{"version":"0.11.0"}')

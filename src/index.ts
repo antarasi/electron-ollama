@@ -200,7 +200,7 @@ export class ElectronOllama {
   /**
    * Start serving Ollama with the specified version
    */
-  public async serve(version: SpecificVersion): Promise<ElectronOllamaServer> {
+  public async serve(version: SpecificVersion, { log }: { log?: (message: string) => void; } = {}): Promise<ElectronOllamaServer> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
 
@@ -211,7 +211,7 @@ export class ElectronOllama {
 
     const server = new ElectronOllamaServer({
       binPath,
-      log: this.config.serveLog || (() => {}),
+      log: log || (() => {}),
     });
     server.start(this.getExecutableName(platformConfig));
 

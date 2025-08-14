@@ -5,7 +5,6 @@ describe('Check metadata', () => {
   it('should check current platform config', async () => {
     const eo = new ElectronOllama({
       basePath: app.getPath('userData'), // share examples userData folder
-      serveLog: (message) => console.log(message),
     })
 
     const currentPlatformConfig = eo.currentPlatformConfig()
@@ -19,7 +18,6 @@ describe('Check metadata', () => {
   it('should check metadata', async () => {
     const eo = new ElectronOllama({
       basePath: app.getPath('userData'), // share examples userData folder
-      serveLog: (message) => console.log(message),
     })
 
     const metadata = await eo.getMetadata()
