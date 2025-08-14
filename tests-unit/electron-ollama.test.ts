@@ -430,7 +430,7 @@ describe('ElectronOllama', () => {
       const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
       fetchSpy.mockRejectedValue(new Error('Connection failed'));
 
-      await expect(ollama.serve('v0.11.0')).rejects.toThrow('Ollama server failed to start in 5 seconds');
+      await expect(ollama.serve('v0.11.0')).rejects.toThrow('Ollama server failed to start in 5s');
 
       setTimeoutSpy.mockRestore();
       fetchSpy.mockRestore();

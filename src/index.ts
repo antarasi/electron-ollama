@@ -200,9 +200,12 @@ export class ElectronOllama {
   /**
    * Start serving Ollama with the specified version
    */
-  public async serve(version: SpecificVersion, { log }: { log?: (message: string) => void; } = {}): Promise<ElectronOllamaServer> {
+  public async serve(version: SpecificVersion, { log, timeoutSec = 5 }: { log?: (message: string) => void; timeoutSec?: number } = {}): Promise<ElectronOllamaServer> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
+
+    const intervalMs = 100;
+    const intervalCount = Math.ceil(timeoutSec * 1000 / intervalMs);
 
     // Ensure the binary exists
     if (!await this.isDownloaded(version, platformConfig)) {
@@ -216,15 +219,15 @@ export class ElectronOllama {
     server.start(this.getExecutableName(platformConfig));
 
     // Wait for the server to start
-    for (let i = 0; i < 50; i++) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    for (let i = 0; i < intervalCount; i++) {
+      await new Promise(resolve => setTimeout(resolve, intervalMs));
 
       if (await this.isRunning()) {
         return server;
       }
     }
 
-    throw new Error('Ollama server failed to start in 5 seconds');
+    throw new Error(`Ollama server failed to start in ${timeoutSec}s`);
   }
 
   /**

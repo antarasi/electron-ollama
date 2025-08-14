@@ -216,8 +216,9 @@ export declare class ElectronOllama {
     /**
      * Start serving Ollama with the specified version
      */
-    serve(version: SpecificVersion, { log }?: {
+    serve(version: SpecificVersion, { log, timeoutSec }?: {
         log?: (message: string) => void;
+        timeoutSec?: number;
     }): Promise<ElectronOllamaServer>;
     /**
      * Check if Ollama is running
