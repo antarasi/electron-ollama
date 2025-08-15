@@ -196,7 +196,9 @@ export declare class ElectronOllama {
     /**
      * Download Ollama for the specified version ('latest' by default) and platform
      */
-    download(version?: Version, platformConfig?: PlatformConfig): Promise<void>;
+    download(version?: Version, platformConfig?: PlatformConfig, { log }?: {
+        log?: (message: string) => void;
+    }): Promise<void>;
     /**
      * Check if a version is downloaded for the given platform configuration
      */
