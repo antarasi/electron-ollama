@@ -15,6 +15,7 @@ export interface PlatformConfig {
 export interface OllamaAssetMetadata {
   digest: string;
   size: number;
+  sizeMB: string;
   fileName: string;
   contentType: string;
   version: SpecificVersion;

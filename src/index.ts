@@ -101,6 +101,7 @@ export class ElectronOllama {
     return {
       digest: asset.digest,
       size: asset.size,
+      sizeMB: (asset.size / 1024 / 1024).toFixed(1),
       fileName: asset.name,
       contentType: asset.content_type,
       version: releaseData.tag_name as SpecificVersion,
@@ -126,7 +127,7 @@ export class ElectronOllama {
     await fs.mkdir(versionDir, { recursive: true });
 
     // 2. Download the file
-    console.log(`Downloading file to ${versionDir}`);
+    console.log(`Downloading file to ${versionDir} (${metadata.sizeMB}MB)`);
     const response = await fetch(metadata.downloadUrl);
 
     // 3. Extract the archive

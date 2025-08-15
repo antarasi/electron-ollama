@@ -203,6 +203,7 @@ describe('ElectronOllama', () => {
       expect(metadata).toEqual({
         digest: 'sha256:88ac973d4aaa8fed68898be45ca16a4c0e80434d068afdc18b304863fe99d064',
         size: 23699596,
+        sizeMB: '22.6',
         fileName: 'ollama-darwin.tgz',
         contentType: 'application/gzip',
         version: 'v0.11.0',
@@ -220,6 +221,7 @@ describe('ElectronOllama', () => {
       expect(metadata).toEqual({
         digest: 'sha256:88ac973d4aaa8fed68898be45ca16a4c0e80434d068afdc18b304863fe99d064',
         size: 23699596,
+        sizeMB: '22.6',
         fileName: 'ollama-darwin.tgz',
         contentType: 'application/gzip',
         version: 'v0.11.0',
