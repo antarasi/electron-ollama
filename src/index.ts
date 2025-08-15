@@ -155,7 +155,8 @@ export class ElectronOllama {
    */
   public async isDownloaded(version: SpecificVersion, platformConfig: PlatformConfig = this.currentPlatformConfig()): Promise<boolean> {
     const binPath = this.getBinPath(version, platformConfig);
-    return fs.access(binPath).then(() => true).catch(() => false);
+    const executableName = this.getExecutableName(platformConfig);
+    return fs.access(path.join(binPath, executableName)).then(() => true).catch(() => false);
   }
 
   /**
