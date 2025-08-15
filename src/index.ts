@@ -12,6 +12,7 @@ export { ElectronOllamaServer };
 
 export class ElectronOllama {
   private config: ElectronOllamaConfig;
+  private server: ElectronOllamaServer | null = null;
 
   constructor(config: ElectronOllamaConfig) {
     this.config = {
@@ -200,9 +201,9 @@ export class ElectronOllama {
   }
 
   /**
-   * Start serving Ollama with the specified version
+   * Start serving Ollama with the specified version and wait until it is running
    */
-  public async serve(version: SpecificVersion, { log, timeoutSec = 5 }: { log?: (message: string) => void; timeoutSec?: number } = {}): Promise<ElectronOllamaServer> {
+  public async serve(version: SpecificVersion, { log, timeoutSec = 5 }: { log?: (message: string) => void; timeoutSec?: number } = {}): Promise<void> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
 
@@ -214,22 +215,29 @@ export class ElectronOllama {
       await this.download(version, platformConfig, { log: log || (() => {}) });
     }
 
-    const server = new ElectronOllamaServer({
+    this.server = new ElectronOllamaServer({
       binPath,
       log: log || (() => {}),
     });
-    server.start(this.getExecutableName(platformConfig));
+    this.server.start(this.getExecutableName(platformConfig));
 
-    // Wait for the server to start
+    // Wait for the server to start in 100ms intervals
     for (let i = 0; i < intervalCount; i++) {
       await new Promise(resolve => setTimeout(resolve, intervalMs));
 
       if (await this.isRunning()) {
-        return server;
+        return;
       }
     }
 
     throw new Error(`Ollama server failed to start in ${timeoutSec}s`);
+  }
+
+  /**
+   * Get the server instance started by serve()
+   */
+  public getServer(): ElectronOllamaServer | null {
+    return this.server || null;
   }
 
   /**

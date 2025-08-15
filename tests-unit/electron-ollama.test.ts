@@ -388,9 +388,9 @@ describe('ElectronOllama', () => {
         text: jest.fn().mockResolvedValue('Ollama is running'),
       } as unknown as Response);
 
-      const server = await ollama.serve('v0.11.0');
+      await ollama.serve('v0.11.0');
 
-      expect(server).toBeInstanceOf(ElectronOllamaServer);
+      expect(ollama.getServer()).toBeInstanceOf(ElectronOllamaServer);
 
       fetchSpy.mockRestore();
     });

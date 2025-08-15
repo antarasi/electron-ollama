@@ -31,18 +31,17 @@ npm install electron-ollama
 <!-- automd:file src="examples/serve-latest.ts" code -->
 
 ```ts [serve-latest.ts]
-import { ElectronOllama, ElectronOllamaServer } from '../dist' // replace with: import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
 import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
   })
-  let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
     const metadata = await eo.getMetadata('latest')
-    server = await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
+    await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
   } else {
     console.log('Ollama server is already running')
   }
@@ -73,23 +72,21 @@ npx tsx examples/serve-latest.ts
 <!-- automd:file src="examples/serve-version.ts" code -->
 
 ```ts [serve-version.ts]
-import { ElectronOllama, ElectronOllamaServer } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
 import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
 
 async function main() {
   const eo = new ElectronOllama({
     basePath: app.getPath('userData'),
   })
-  let server: ElectronOllamaServer | null = null
 
   if (!(await eo.isRunning())) {
-    server = await eo.serve('v0.11.0', { log: (message) => console.log('[Ollama]', message) }) // Welcome OpenAI's gpt-oss models
+    await eo.serve('v0.11.0', { log: (message) => console.log('[Ollama]', message) }) // Welcome OpenAI's gpt-oss models
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
-
     console.log('Currently running Ollama', liveVersion)
 
-    await server.stop() // gracefully stop the server with 5s timeout
+    await eo.getServer()?.stop() // gracefully stop the server with 5s timeout
   } else {
     console.log('Ollama server is already running')
   }
@@ -180,6 +177,7 @@ export type { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAs
 export { ElectronOllamaServer };
 export declare class ElectronOllama {
     private config;
+    private server;
     constructor(config: ElectronOllamaConfig);
     /**
      * Get the current platform configuration
@@ -216,12 +214,16 @@ export declare class ElectronOllama {
      */
     getExecutableName(platformConfig: PlatformConfig): string;
     /**
-     * Start serving Ollama with the specified version
+     * Start serving Ollama with the specified version and wait until it is running
      */
     serve(version: SpecificVersion, { log, timeoutSec }?: {
         log?: (message: string) => void;
         timeoutSec?: number;
-    }): Promise<ElectronOllamaServer>;
+    }): Promise<void>;
+    /**
+     * Get the server instance started by serve()
+     */
+    getServer(): ElectronOllamaServer | null;
     /**
      * Check if Ollama is running
      */
