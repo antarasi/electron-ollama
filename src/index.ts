@@ -117,21 +117,22 @@ export class ElectronOllama {
    */
   public async download(
     version: Version = 'latest',
-    platformConfig: PlatformConfig = this.currentPlatformConfig()
+    platformConfig: PlatformConfig = this.currentPlatformConfig(),
+    { log }: { log?: (message: string) => void; } = {},
   ): Promise<void> {
     const metadata = await this.getMetadata(version, platformConfig);
     const versionDir = this.getBinPath(metadata.version, platformConfig);
 
     // 1. Create directory if it doesn't exist
-    console.log('Creating directory if it doesn\'t exist');
+    log?.('Creating directory');
     await fs.mkdir(versionDir, { recursive: true });
 
     // 2. Download the file
-    console.log(`Downloading file to ${versionDir} (${metadata.sizeMB}MB)`);
+    log?.(`Downloading ${metadata.fileName} (${metadata.sizeMB}MB)`);
     const response = await fetch(metadata.downloadUrl);
 
     // 3. Extract the archive
-    console.log(`Extracting archive ${metadata.fileName} in ${versionDir}`);
+    log?.(`Extracting archive ${metadata.fileName} in ${versionDir}`);
     if (metadata.contentType === 'application/zip') {
       const buffer = await response.arrayBuffer();
       await fs.writeFile(path.join(versionDir, metadata.fileName), Buffer.from(buffer));
@@ -143,7 +144,7 @@ export class ElectronOllama {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }
 
-    console.log(`Extracted archive ${metadata.fileName} to ${versionDir}`);
+    log?.(`Extracted archive ${metadata.fileName} to ${versionDir}`);
 
     // 4. Verify checksum
   }
@@ -210,7 +211,7 @@ export class ElectronOllama {
 
     // Ensure the binary exists
     if (!await this.isDownloaded(version, platformConfig)) {
-      await this.download(version, platformConfig);
+      await this.download(version, platformConfig, { log: log || (() => {}) });
     }
 
     const server = new ElectronOllamaServer({

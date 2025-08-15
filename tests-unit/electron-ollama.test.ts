@@ -282,10 +282,10 @@ describe('ElectronOllama', () => {
     it('should call getMetadata and log download info', async () => {
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      await ollama.download();
+      await ollama.download('latest', undefined, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
       expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
       expect(mockUntgz).toHaveBeenCalled(); // Darwin uses .tgz by default
 
@@ -299,10 +299,10 @@ describe('ElectronOllama', () => {
         arch: 'amd64',
       };
 
-      await ollama.download('v0.8.0', platformConfig);
+      await ollama.download('v0.8.0', platformConfig, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/windows/amd64');
+      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-windows-amd64.zip (1269.2MB)');
       expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-windows-amd64.zip in /tmp/electron-ollama/v0.11.0/windows/amd64');
       expect(mockUnzip).toHaveBeenCalled(); // Windows uses .zip
 
@@ -413,10 +413,10 @@ describe('ElectronOllama', () => {
       const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
       fetchSpy.mockResolvedValue(mockResponse);
 
-      await ollama.serve('v0.11.0');
+      await ollama.serve('v0.11.0', { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory if it doesn\'t exist');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading file to /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
       expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
 
       consoleSpy.mockRestore();
