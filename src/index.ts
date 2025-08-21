@@ -1,12 +1,14 @@
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { createWriteStream } from 'fs';
 import * as os from 'os';
 import { githubFetch } from './github-fetch';
 import { unzipFile } from './unzip';
 import { untgzStream } from './untgz';
 import { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, GitHubRelease, SpecificVersion, Version } from './types';
 import { ElectronOllamaServer } from './server';
-import { Readable } from 'stream';
+import { Transform, Readable } from 'stream';
+import { pipeline } from 'stream/promises';
 export type { ElectronOllamaConfig, OllamaServerConfig, PlatformConfig, OllamaAssetMetadata, SpecificVersion, Version };
 export { ElectronOllamaServer };
 
@@ -119,33 +121,75 @@ export class ElectronOllama {
   public async download(
     version: Version = 'latest',
     platformConfig: PlatformConfig = this.currentPlatformConfig(),
-    { log }: { log?: (message: string) => void; } = {},
+    {
+      log
+    }: {
+      log?: (percent: number, message: string) => void;
+    } = {},
   ): Promise<void> {
     const metadata = await this.getMetadata(version, platformConfig);
     const versionDir = this.getBinPath(metadata.version, platformConfig);
 
     // 1. Create directory if it doesn't exist
-    log?.('Creating directory');
+    log?.(0, 'Creating directory');
     await fs.mkdir(versionDir, { recursive: true });
 
     // 2. Download the file
-    log?.(`Downloading ${metadata.fileName} (${metadata.sizeMB}MB)`);
+    log?.(0, `Downloading ${metadata.fileName} (${metadata.sizeMB}MB)`);
     const response = await fetch(metadata.downloadUrl);
 
+    // Create a progress-tracking transform stream that works with Web API streams
+    let downloadedBytes = 0;
+    const totalBytes = metadata.size; // this is estimate from metadata
+    let lastLoggedPercent = 0;
+
+    const progressStream = new Transform({
+      transform(chunk, _encoding, callback) {
+        downloadedBytes += chunk.length;
+
+        // Log progress in 1% increments
+        const currentPercent = Math.floor((downloadedBytes / totalBytes) * 100);
+        if (currentPercent > lastLoggedPercent) {
+          if (currentPercent < 100) {
+            log?.(currentPercent, `Downloading ${metadata.fileName} (${(downloadedBytes / 1024 / 1024).toFixed(1)}MB / ${metadata.sizeMB}MB) ${currentPercent}%`);
+          } else {
+            log?.(100, `Extracting ${metadata.fileName} (${metadata.sizeMB}MB)`);
+          }
+          lastLoggedPercent = currentPercent;
+        }
+
+        // Pass the chunk through unchanged
+        callback(null, chunk);
+      }
+    });
+
+    // Convert Web API ReadableStream to Node.js stream using Readable.fromWeb()
+    if (!response.body) {
+      throw new Error('Response body is not readable');
+    }
+
+    const nodeStream = Readable.fromWeb(response.body);
+    nodeStream.pipe(progressStream);
+
     // 3. Extract the archive
-    log?.(`Extracting archive ${metadata.fileName} in ${versionDir}`);
     if (metadata.contentType === 'application/zip') {
-      const buffer = await response.arrayBuffer();
-      await fs.writeFile(path.join(versionDir, metadata.fileName), Buffer.from(buffer));
-      await unzipFile(path.join(versionDir, metadata.fileName), versionDir, true);
+      // For zip files, stream directly to file then extract
+      const filePath = path.join(versionDir, metadata.fileName);
+      const writeStream = createWriteStream(filePath);
+
+      // Use pipeline to handle the entire stream chain with automatic promise handling
+      await pipeline(progressStream, writeStream);
+
+      // Now extract the downloaded file
+      await unzipFile(filePath, versionDir, true);
     } else if (['application/x-gtar', 'application/x-tar', 'application/x-gzip', 'application/tar', 'application/gzip', 'application/x-tgz'].includes(metadata.contentType)) {
-      const stream = Readable.from(response.body!);
-      await untgzStream(stream, versionDir);
+      // For tar archives, stream directly to extraction
+      await untgzStream(progressStream, versionDir);
     } else {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }
 
-    log?.(`Extracted archive ${metadata.fileName} to ${versionDir}`);
+    log?.(100, `Extracted archive ${metadata.fileName}`);
 
     // 4. Verify checksum
   }
@@ -204,7 +248,18 @@ export class ElectronOllama {
   /**
    * Start serving Ollama with the specified version and wait until it is running
    */
-  public async serve(version: SpecificVersion, { log, timeoutSec = 5 }: { log?: (message: string) => void; timeoutSec?: number } = {}): Promise<void> {
+  public async serve(
+    version: SpecificVersion,
+    {
+      serverLog,
+      downloadLog,
+      timeoutSec = 5
+    }: {
+      serverLog?: (message: string) => void;
+      downloadLog?: (percent: number, message: string) => void;
+      timeoutSec?: number
+    } = {}
+  ): Promise<void> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
 
@@ -213,12 +268,12 @@ export class ElectronOllama {
 
     // Ensure the binary exists
     if (!await this.isDownloaded(version, platformConfig)) {
-      await this.download(version, platformConfig, { log: log || (() => {}) });
+      await this.download(version, platformConfig, { log: downloadLog || (() => {}) });
     }
 
     this.server = new ElectronOllamaServer({
       binPath,
-      log: log || (() => {}),
+      log: serverLog || (() => {}),
     });
     this.server.start(this.getExecutableName(platformConfig));
 

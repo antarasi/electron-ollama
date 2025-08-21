@@ -16,6 +16,11 @@ jest.mock('../src/untgz', () => ({
   untgzStream: jest.fn().mockResolvedValue(undefined),
 }));
 
+// Mock stream pipeline to avoid complex streaming logic in tests
+jest.mock('stream/promises', () => ({
+  pipeline: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Mock githubFetch
 jest.mock('../src/github-fetch', () => ({
   githubFetch: jest.fn(),
@@ -266,11 +271,13 @@ describe('ElectronOllama', () => {
       fetchSpy = jest.spyOn(global, 'fetch');
       const mockResponse = {
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
-        body: {
-          [Symbol.asyncIterator]: async function* () {
-            yield new Uint8Array([0, 1, 2, 3]);
+        body: new ReadableStream({
+          start(controller) {
+            // Simple mock that provides minimal data and closes immediately
+            controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+            controller.close();
           }
-        },
+        }),
       };
       fetchSpy.mockResolvedValue(mockResponse);
     });
@@ -284,9 +291,9 @@ describe('ElectronOllama', () => {
 
       await ollama.download('latest', undefined, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
-      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-darwin.tgz (22.6MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-darwin.tgz');
       expect(mockUntgz).toHaveBeenCalled(); // Darwin uses .tgz by default
 
       consoleSpy.mockRestore();
@@ -301,9 +308,9 @@ describe('ElectronOllama', () => {
 
       await ollama.download('v0.8.0', platformConfig, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-windows-amd64.zip (1269.2MB)');
-      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-windows-amd64.zip in /tmp/electron-ollama/v0.11.0/windows/amd64');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-windows-amd64.zip (1269.2MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-windows-amd64.zip');
       expect(mockUnzip).toHaveBeenCalled(); // Windows uses .zip
 
       consoleSpy.mockRestore();
@@ -404,20 +411,22 @@ describe('ElectronOllama', () => {
         // arrayBuffer is used by download
         arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
         // body is used by download
-        body: {
-          [Symbol.asyncIterator]: async function* () {
-            yield new Uint8Array([0, 1, 2, 3]);
+        body: new ReadableStream({
+          start(controller) {
+            // Simple mock that provides minimal data and closes immediately
+            controller.enqueue(new Uint8Array([1, 2, 3, 4]));
+            controller.close();
           }
-        },
+        }),
       };
       const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
       fetchSpy.mockResolvedValue(mockResponse);
 
-      await ollama.serve('v0.11.0', { log: console.log });
+      await ollama.serve('v0.11.0', { serverLog: console.log, downloadLog: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
-      expect(consoleSpy).toHaveBeenCalledWith('Extracting archive ollama-darwin.tgz in /tmp/electron-ollama/v0.11.0/darwin/arm64');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-darwin.tgz (22.6MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-darwin.tgz');
 
       consoleSpy.mockRestore();
       fetchSpy.mockRestore();
