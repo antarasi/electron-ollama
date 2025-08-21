@@ -31,7 +31,7 @@ npm install electron-ollama
 <!-- automd:file src="examples/serve-latest.ts" code -->
 
 ```ts [serve-latest.ts]
-import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
 import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
 
 async function main() {
@@ -41,7 +41,10 @@ async function main() {
 
   if (!(await eo.isRunning())) {
     const metadata = await eo.getMetadata('latest')
-    await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
+    await eo.serve(metadata.version, {
+      serverLog: (message) => console.log('[Ollama]', message),
+      downloadLog: (message) => console.log('[Ollama]', message)
+    })
   } else {
     console.log('Ollama server is already running')
   }
@@ -81,7 +84,11 @@ async function main() {
   })
 
   if (!(await eo.isRunning())) {
-    await eo.serve('v0.11.0', { log: (message) => console.log('[Ollama]', message) }) // Welcome OpenAI's gpt-oss models
+    // Welcome OpenAI's gpt-oss models
+    await eo.serve('v0.11.0', {
+      serverLog: (message) => console.log('[Ollama]', message),
+      downloadLog: (message) => console.log('[Ollama]', message)
+    })
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
     console.log('Currently running Ollama', liveVersion)
@@ -216,8 +223,9 @@ export declare class ElectronOllama {
     /**
      * Start serving Ollama with the specified version and wait until it is running
      */
-    serve(version: SpecificVersion, { log, timeoutSec }?: {
-        log?: (message: string) => void;
+    serve(version: SpecificVersion, { serverLog, downloadLog, timeoutSec }?: {
+        serverLog?: (message: string) => void;
+        downloadLog?: (message: string) => void;
         timeoutSec?: number;
     }): Promise<void>;
     /**

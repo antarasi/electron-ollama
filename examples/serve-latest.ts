@@ -1,4 +1,4 @@
-import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama, ElectronOllamaServer } from 'electron-ollama'
+import { ElectronOllama } from '../dist' // replace with: import { ElectronOllama } from 'electron-ollama'
 import { app } from './mock/electron' // on electron app replace with: import { app } from 'electron'
 
 async function main() {
@@ -8,7 +8,10 @@ async function main() {
 
   if (!(await eo.isRunning())) {
     const metadata = await eo.getMetadata('latest')
-    await eo.serve(metadata.version, { log: (message) => console.log('[Ollama]', message) })
+    await eo.serve(metadata.version, {
+      serverLog: (message) => console.log('[Ollama]', message),
+      downloadLog: (message) => console.log('[Ollama]', message)
+    })
   } else {
     console.log('Ollama server is already running')
   }

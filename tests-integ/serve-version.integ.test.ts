@@ -11,7 +11,11 @@ describe('Serve specific version', () => {
 
     try {
       if (!(await eo.isRunning())) {
-        await eo.serve('v0.11.0', { log: (message) => console.log(message) }) // Welcome OpenAI's gpt-oss models
+        // Welcome OpenAI's gpt-oss models
+        await eo.serve('v0.11.0', {
+          serverLog: (message) => console.log(message),
+          downloadLog: (message) => console.log(message)
+        })
 
         const liveVersionText = await fetch('http://localhost:11434/api/version').then(res => res.text())
         expect(liveVersionText).toStrictEqual('{"version":"0.11.0"}')
@@ -23,6 +27,10 @@ describe('Serve specific version', () => {
     }
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Listening on 127.0.0.1:11434'))
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Creating directory'))
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Downloading'))
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Extracting archive'))
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Extracted archive'))
 
     consoleSpy.mockRestore();
   })

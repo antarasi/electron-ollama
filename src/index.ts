@@ -204,7 +204,7 @@ export class ElectronOllama {
   /**
    * Start serving Ollama with the specified version and wait until it is running
    */
-  public async serve(version: SpecificVersion, { log, timeoutSec = 5 }: { log?: (message: string) => void; timeoutSec?: number } = {}): Promise<void> {
+  public async serve(version: SpecificVersion, { serverLog, downloadLog, timeoutSec = 5 }: { serverLog?: (message: string) => void; downloadLog?: (message: string) => void; timeoutSec?: number } = {}): Promise<void> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
 
@@ -213,12 +213,12 @@ export class ElectronOllama {
 
     // Ensure the binary exists
     if (!await this.isDownloaded(version, platformConfig)) {
-      await this.download(version, platformConfig, { log: log || (() => {}) });
+      await this.download(version, platformConfig, { log: downloadLog || (() => {}) });
     }
 
     this.server = new ElectronOllamaServer({
       binPath,
-      log: log || (() => {}),
+      log: serverLog || (() => {}),
     });
     this.server.start(this.getExecutableName(platformConfig));
 
