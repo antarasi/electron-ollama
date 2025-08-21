@@ -291,8 +291,9 @@ describe('ElectronOllama', () => {
 
       await ollama.download('latest', undefined, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-darwin.tgz (22.6MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-darwin.tgz');
       expect(mockUntgz).toHaveBeenCalled(); // Darwin uses .tgz by default
 
       consoleSpy.mockRestore();
@@ -307,9 +308,9 @@ describe('ElectronOllama', () => {
 
       await ollama.download('v0.8.0', platformConfig, { log: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-windows-amd64.zip (1269.2MB)');
-      expect(consoleSpy).toHaveBeenCalledWith('Extracted archive ollama-windows-amd64.zip');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-windows-amd64.zip (1269.2MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-windows-amd64.zip');
       expect(mockUnzip).toHaveBeenCalled(); // Windows uses .zip
 
       consoleSpy.mockRestore();
@@ -423,9 +424,9 @@ describe('ElectronOllama', () => {
 
       await ollama.serve('v0.11.0', { serverLog: console.log, downloadLog: console.log });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
-      expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
-      expect(consoleSpy).toHaveBeenCalledWith('Extracted archive ollama-darwin.tgz');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Creating directory');
+      expect(consoleSpy).toHaveBeenCalledWith(0, 'Downloading ollama-darwin.tgz (22.6MB)');
+      expect(consoleSpy).toHaveBeenCalledWith(100, 'Extracted archive ollama-darwin.tgz');
 
       consoleSpy.mockRestore();
       fetchSpy.mockRestore();
