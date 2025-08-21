@@ -10,7 +10,7 @@ async function main() {
     const metadata = await eo.getMetadata('latest')
     await eo.serve(metadata.version, {
       serverLog: (message) => console.log('[Ollama]', message),
-      downloadLog: (message) => console.log('[Ollama]', message)
+      downloadLog: (percent, message) => console.log('[Ollama Download]', `${percent}%`, message)
     })
   } else {
     console.log('Ollama server is already running')

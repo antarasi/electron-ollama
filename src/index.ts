@@ -121,17 +121,21 @@ export class ElectronOllama {
   public async download(
     version: Version = 'latest',
     platformConfig: PlatformConfig = this.currentPlatformConfig(),
-    { log }: { log?: (message: string) => void; } = {},
+    {
+      log
+    }: {
+      log?: (percent: number, message: string) => void;
+    } = {},
   ): Promise<void> {
     const metadata = await this.getMetadata(version, platformConfig);
     const versionDir = this.getBinPath(metadata.version, platformConfig);
 
     // 1. Create directory if it doesn't exist
-    log?.('Creating directory');
+    log?.(0, 'Creating directory');
     await fs.mkdir(versionDir, { recursive: true });
 
     // 2. Download the file
-    log?.(`Downloading ${metadata.fileName} (${metadata.sizeMB}MB)`);
+    log?.(0, `Downloading ${metadata.fileName} (${metadata.sizeMB}MB)`);
     const response = await fetch(metadata.downloadUrl);
 
     // Create a progress-tracking transform stream that works with Web API streams
@@ -146,7 +150,11 @@ export class ElectronOllama {
         // Log progress in 1% increments
         const currentPercent = Math.floor((downloadedBytes / totalBytes) * 100);
         if (currentPercent > lastLoggedPercent) {
-          log?.(`Download progress: ${currentPercent}% (${(downloadedBytes / 1024 / 1024).toFixed(1)}MB / ${metadata.sizeMB}MB)`);
+          if (currentPercent < 100) {
+            log?.(currentPercent, `Downloading ${metadata.fileName} (${(downloadedBytes / 1024 / 1024).toFixed(1)}MB / ${metadata.sizeMB}MB) ${currentPercent}%`);
+          } else {
+            log?.(100, `Extracting ${metadata.fileName} (${metadata.sizeMB}MB)`);
+          }
           lastLoggedPercent = currentPercent;
         }
 
@@ -181,7 +189,7 @@ export class ElectronOllama {
       throw new Error(`The Ollama asset type ${metadata.contentType} is not supported`);
     }
 
-    log?.(`Extracted archive ${metadata.fileName}`);
+    log?.(100, `Extracted archive ${metadata.fileName}`);
 
     // 4. Verify checksum
   }
@@ -240,7 +248,18 @@ export class ElectronOllama {
   /**
    * Start serving Ollama with the specified version and wait until it is running
    */
-  public async serve(version: SpecificVersion, { serverLog, downloadLog, timeoutSec = 5 }: { serverLog?: (message: string) => void; downloadLog?: (message: string) => void; timeoutSec?: number } = {}): Promise<void> {
+  public async serve(
+    version: SpecificVersion,
+    {
+      serverLog,
+      downloadLog,
+      timeoutSec = 5
+    }: {
+      serverLog?: (message: string) => void;
+      downloadLog?: (percent: number, message: string) => void;
+      timeoutSec?: number
+    } = {}
+  ): Promise<void> {
     const platformConfig = this.currentPlatformConfig();
     const binPath = this.getBinPath(version, platformConfig);
 

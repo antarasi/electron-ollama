@@ -10,7 +10,7 @@ async function main() {
     // Welcome OpenAI's gpt-oss models
     await eo.serve('v0.11.0', {
       serverLog: (message) => console.log('[Ollama]', message),
-      downloadLog: (message) => console.log('[Ollama]', message)
+      downloadLog: (percent, message) => console.log('[Ollama Download]', `${percent}%`, message)
     })
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())

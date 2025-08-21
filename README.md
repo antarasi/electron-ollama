@@ -43,7 +43,7 @@ async function main() {
     const metadata = await eo.getMetadata('latest')
     await eo.serve(metadata.version, {
       serverLog: (message) => console.log('[Ollama]', message),
-      downloadLog: (message) => console.log('[Ollama]', message)
+      downloadLog: (percent, message) => console.log('[Ollama Download]', `${percent}%`, message)
     })
   } else {
     console.log('Ollama server is already running')
@@ -87,7 +87,7 @@ async function main() {
     // Welcome OpenAI's gpt-oss models
     await eo.serve('v0.11.0', {
       serverLog: (message) => console.log('[Ollama]', message),
-      downloadLog: (message) => console.log('[Ollama]', message)
+      downloadLog: (percent, message) => console.log('[Ollama Download]', `${percent}%`, message)
     })
 
     const liveVersion = await fetch('http://localhost:11434/api/version').then(res => res.json())
@@ -202,7 +202,7 @@ export declare class ElectronOllama {
      * Download Ollama for the specified version ('latest' by default) and platform
      */
     download(version?: Version, platformConfig?: PlatformConfig, { log }?: {
-        log?: (message: string) => void;
+        log?: (percent: number, message: string) => void;
     }): Promise<void>;
     /**
      * Check if a version is downloaded for the given platform configuration
@@ -225,7 +225,7 @@ export declare class ElectronOllama {
      */
     serve(version: SpecificVersion, { serverLog, downloadLog, timeoutSec }?: {
         serverLog?: (message: string) => void;
-        downloadLog?: (message: string) => void;
+        downloadLog?: (percent: number, message: string) => void;
         timeoutSec?: number;
     }): Promise<void>;
     /**
