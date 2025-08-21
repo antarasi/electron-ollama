@@ -27,10 +27,9 @@ describe('Serve specific version', () => {
     }
 
     expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Listening on 127.0.0.1:11434'))
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Creating directory'))
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Downloading'))
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Extracting archive'))
-    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Extracted archive'))
+    expect(consoleSpy).toHaveBeenCalledWith('Creating directory')
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Downloading'));
+    expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Extracted archive'));
 
     consoleSpy.mockRestore();
   })
