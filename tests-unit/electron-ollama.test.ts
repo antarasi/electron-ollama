@@ -413,7 +413,7 @@ describe('ElectronOllama', () => {
       const fetchSpy: jest.SpyInstance = jest.spyOn(global, 'fetch');
       fetchSpy.mockResolvedValue(mockResponse);
 
-      await ollama.serve('v0.11.0', { log: console.log });
+      await ollama.serve('v0.11.0', { serverLog: console.log, downloadLog: console.log });
 
       expect(consoleSpy).toHaveBeenCalledWith('Creating directory');
       expect(consoleSpy).toHaveBeenCalledWith('Downloading ollama-darwin.tgz (22.6MB)');
